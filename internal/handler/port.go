@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -93,7 +93,7 @@ func (h *PortHandler) Handle(data string, source string) *output.Response {
 }
 
 func (h *PortHandler) checkPort(host string, port int, timeout time.Duration, protocol string) PortEntry {
-	target := fmt.Sprintf("%s:%d", host, port)
+	target := net.JoinHostPort(host, strconv.Itoa(port))
 	conn, err := net.DialTimeout(protocol, target, timeout)
 	if err != nil {
 		return PortEntry{Port: port, Open: false}
@@ -141,7 +141,8 @@ func (h *PortHandler) parsePayload(data string) *PortPayload {
 		if strings.Contains(data, ":") {
 			parts := strings.SplitN(data, ":", 2)
 			payload.Host = parts[0]
-			fmt.Sscanf(parts[1], "%d", &payload.Port)
+			port, _ := strconv.Atoi(parts[1])
+			payload.Port = port
 		}
 	}
 	return payload
