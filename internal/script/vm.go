@@ -82,6 +82,26 @@ func (vm *VM) AddOutput(s string) {
 	vm.outputs = append(vm.outputs, s)
 }
 
+func (vm *VM) currentLine() int {
+	if len(vm.frames) == 0 {
+		return 0
+	}
+	frame := &vm.frames[len(vm.frames)-1]
+	if frame.IP > 0 && frame.IP <= len(frame.Fn.Instructions) {
+		return frame.Fn.Instructions[frame.IP-1].Line
+	}
+	return 0
+}
+
+func (vm *VM) fmtError(format string, args ...interface{}) error {
+	line := vm.currentLine()
+	msg := fmt.Sprintf(format, args...)
+	if line > 0 {
+		return fmt.Errorf("line %d: %s", line, msg)
+	}
+	return fmt.Errorf("%s", msg)
+}
+
 func (vm *VM) currentFn() *FnObject {
 	if len(vm.frames) == 0 {
 		return nil
@@ -105,7 +125,7 @@ func (vm *VM) resolveVarInCurrentFrame(name string) (bool, int, bool) {
 func (vm *VM) execute() (Object, error) {
 	for {
 		if vm.opCount > vm.maxOps {
-			return nil, fmt.Errorf("execution limit exceeded (%d operations)", vm.maxOps)
+			return nil, vm.fmtError("execution limit exceeded (%d operations)", vm.maxOps)
 		}
 		vm.opCount++
 
@@ -380,7 +400,7 @@ func (vm *VM) execute() (Object, error) {
 				vm.push(result)
 
 			default:
-				return nil, fmt.Errorf("not callable: %s", fn.Inspect())
+				return nil, vm.fmtError("not callable: %s", fn.Inspect())
 			}
 
 		case OpReturn:

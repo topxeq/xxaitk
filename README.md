@@ -59,6 +59,15 @@ aitk                    # Enter interactive REPL
 | `--help`, `-h` | Print help |
 | `--debug` | Enable debug output |
 
+### Library Commands
+
+```
+aitk lib list              List installed script libraries
+aitk lib search            Search remote library registry
+aitk lib get <name>        Download and install a library
+aitk lib remove <name>     Remove an installed library
+```
+
 ## Operation Prefixes
 
 ### Execution
@@ -122,6 +131,14 @@ Algorithms: `md5`, `sha1`, `sha256`, `sha512`
 
 Actions: `start`, `status`, `stop`, `list`
 
+### Version Control
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `GIT` | Git operations | `{"action":"status"}` or `{"action":"log","n":10}` |
+
+Actions: `status`, `log`, `diff`, `add`, `commit`, `branch`, `checkout`, `pull`, `push`, `fetch`, `tag`, `stash`, `merge`, `rebase`, `remote`, `clone`, `init`, `show`, `blame`, `reset`, `config`, `clean`
+
 ### Diff
 
 | Prefix | Description | Hex Decoded Format |
@@ -157,6 +174,26 @@ aitk SQL_<hex of {"driver":"sqlite","dsn":"/tmp/test.db","query":"SELECT * FROM 
 # MySQL query
 aitk SQL_<hex of {"driver":"mysql","dsn":"user:pass@tcp(localhost:3306)/mydb","query":"SHOW TABLES"}>
 ```
+
+### Download
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `NETDOWNLOAD` | Download file with SHA256 verification | `{"url":"...","path":"/tmp/file","resume":true,"verify":"sha256:abc..."}` |
+
+### Port Scanning
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `PORT` | Check port or scan range | `{"host":"localhost","port":80}` or `{"host":"10.0.0.1","from":1,"to":1024}` |
+
+### Capabilities Discovery
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `CAPABILITIES` | Query aitk capabilities | `"version"`, `"prefixes"`, `"builtins"`, `"all"` |
+
+AI agents can call `CAPABILITIES_616c6c` (hex for "all") on first connection to discover available features.
 
 ## Data Source Modifiers
 

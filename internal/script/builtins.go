@@ -50,7 +50,7 @@ func init() {
 		"str_trim", "str_upper", "str_lower", "str_replace", "str_has_prefix",
 		"str_has_suffix", "str_contains", "str_index", "str_from_int",
 		"str_from_float", "str_to_int", "str_to_float", "str_repeat",
-		"str_reverse", "str_pad_left", "str_pad_right",
+		"str_reverse", "str_pad_left", "str_pad_right", "str_interp",
 		"math_abs", "math_max", "math_min", "math_floor", "math_ceil",
 		"math_round", "math_sqrt", "math_pow", "math_mod", "math_rand",
 		"math_rand_int", "math_log", "math_exp", "math_sin", "math_cos",
@@ -315,6 +315,21 @@ func registerStrBuiltins() {
 			s = s + pad
 		}
 		return StringObject(s)
+	})
+	registerBuiltin("str_interp", func(args ...Object) Object {
+		if len(args) < 1 {
+			return StringObject("")
+		}
+		tmpl := args[0].Inspect()
+		if len(args) >= 2 {
+			if m, ok := args[1].(MapObject); ok {
+				for k, v := range m.Pairs {
+					placeholder := "${" + k + "}"
+					tmpl = strings.ReplaceAll(tmpl, placeholder, v.Inspect())
+				}
+			}
+		}
+		return StringObject(tmpl)
 	})
 }
 

@@ -61,6 +61,10 @@ var knownPrefixes = map[string]bool{
 	"DIFF":      true,
 	"ARCHIVE":   true,
 	"SQL":       true,
+	"GIT":       true,
+	"PORT":      true,
+	"NETDOWNLOAD": true,
+	"CAPABILITIES": true,
 }
 
 func IsKnownPrefix(prefix string) bool {

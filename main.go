@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -8,9 +9,10 @@ import (
 	"github.com/topxeq/xxaitk/internal/dispatcher"
 	"github.com/topxeq/xxaitk/internal/handler"
 	"github.com/topxeq/xxaitk/internal/repl"
+	"github.com/topxeq/xxaitk/internal/scriptlib"
 )
 
-var version = "0.2.0"
+var version = "0.3.0"
 
 func main() {
 	args := os.Args[1:]
@@ -18,6 +20,11 @@ func main() {
 	if len(args) == 0 {
 		r := repl.New(false)
 		r.Run()
+		return
+	}
+
+	if args[0] == "lib" {
+		handleLibCommand(args[1:])
 		return
 	}
 
@@ -53,6 +60,83 @@ func main() {
 	d.Dispatch(remaining[0])
 }
 
+func handleLibCommand(args []string) {
+	if len(args) == 0 {
+		printLibHelp()
+		return
+	}
+
+	switch args[0] {
+	case "list", "ls":
+		installed, err := scriptlib.ListInstalled()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if len(installed) == 0 {
+			fmt.Println("No libraries installed.")
+			fmt.Println("Use 'aitk lib search' to browse available libraries.")
+			return
+		}
+		fmt.Println("Installed libraries:")
+		for _, name := range installed {
+			fmt.Printf("  %s\n", name)
+		}
+
+	case "search":
+		reg, err := scriptlib.ListRemote()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if len(reg.Libraries) == 0 {
+			fmt.Println("No libraries available in registry.")
+			return
+		}
+		fmt.Println("Available libraries:")
+		data, _ := json.MarshalIndent(reg.Libraries, "", "  ")
+		fmt.Println(string(data))
+
+	case "get":
+		if len(args) < 2 {
+			fmt.Fprintln(os.Stderr, "Usage: aitk lib get <name>")
+			os.Exit(1)
+		}
+		name := args[1]
+		fmt.Printf("Downloading library '%s'...\n", name)
+		if err := scriptlib.Get(name); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Library '%s' installed successfully.\n", name)
+
+	case "remove", "rm":
+		if len(args) < 2 {
+			fmt.Fprintln(os.Stderr, "Usage: aitk lib remove <name>")
+			os.Exit(1)
+		}
+		name := args[1]
+		if err := scriptlib.Remove(name); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Library '%s' removed.\n", name)
+
+	default:
+		printLibHelp()
+	}
+}
+
+func printLibHelp() {
+	fmt.Println("Usage: aitk lib <command>")
+	fmt.Println()
+	fmt.Println("Commands:")
+	fmt.Println("  list              List installed libraries")
+	fmt.Println("  search            Search remote library registry")
+	fmt.Println("  get <name>        Download and install a library")
+	fmt.Println("  remove <name>     Remove an installed library")
+}
+
 func registerHandlers() {
 	handler.Register("SHELL", &handler.ShellHandler{})
 	handler.Register("SCRIPT", &handler.ScriptHandler{})
@@ -80,9 +164,10 @@ func registerHandlers() {
 	handler.Register("DIFF", &handler.DiffHandler{})
 	handler.Register("ARCHIVE", &handler.ArchiveHandler{})
 	handler.Register("SQL", &handler.SQLHandler{})
-	handler.Register("PROCESS", &handler.ProcessHandler{})
-	handler.Register("DIFF", &handler.DiffHandler{})
-	handler.Register("HASH", &handler.HashHandler{})
+	handler.Register("GIT", &handler.GitHandler{})
+	handler.Register("PORT", &handler.PortHandler{})
+	handler.Register("NETDOWNLOAD", &handler.NetDownloadHandler{})
+	handler.Register("CAPABILITIES", &handler.CapabilitiesHandler{})
 }
 
 func printHelp() {
@@ -90,6 +175,7 @@ func printHelp() {
 	fmt.Println("Usage:")
 	fmt.Println("  aitk                              Enter REPL mode")
 	fmt.Println("  aitk <PREFIX>[_SOURCE]_<HEXDATA>  Execute command")
+	fmt.Println("  aitk lib <command>               Manage script libraries")
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  --version, -v   Print version")
@@ -97,30 +183,20 @@ func printHelp() {
 	fmt.Println("  --debug         Enable debug output")
 	fmt.Println()
 	fmt.Println("Prefixes:")
-	fmt.Println("  SHELL      Execute shell command")
-	fmt.Println("  SCRIPT     Execute built-in script")
-	fmt.Println("  EVAL       Evaluate expression (single-line SCRIPT)")
-	fmt.Println("  HTTPGET    HTTP GET request")
-	fmt.Println("  HTTPPOST   HTTP POST request")
-	fmt.Println("  FILE       Read file (alias: READFILE)")
-	fmt.Println("  WRITEFILE  Write file")
-	fmt.Println("  LISTDIR    List directory")
-	fmt.Println("  DELETE     Delete file/directory")
-	fmt.Println("  INFO       System information")
-	fmt.Println("  DECODE     Hex decode")
-	fmt.Println("  ENCODE     Hex encode")
-	fmt.Println("  B64ENC     Base64 encode")
-	fmt.Println("  B64DEC     Base64 decode")
-	fmt.Println("  URLENC     URL encode")
-	fmt.Println("  URLDEC     URL decode")
-	fmt.Println("  PING       Network connectivity test")
+	fmt.Println("  Execution:    SHELL SCRIPT EVAL")
+	fmt.Println("  HTTP:         HTTPGET HTTPPOST HTTPPUT HTTPPATCH HTTPDELETE")
+	fmt.Println("  Filesystem:   FILE READFILE WRITEFILE LISTDIR DELETE")
+	fmt.Println("  Network:      PING NETDOWNLOAD PORT")
+	fmt.Println("  Encoding:     DECODE ENCODE B64ENC B64DEC URLENC URLDEC")
+	fmt.Println("  Crypto:       HASH")
+	fmt.Println("  VCS:          GIT")
+	fmt.Println("  Process:      PROCESS")
+	fmt.Println("  Diff:         DIFF")
+	fmt.Println("  Archive:      ARCHIVE")
+	fmt.Println("  Database:     SQL")
+	fmt.Println("  System:       INFO CAPABILITIES")
 	fmt.Println()
 	fmt.Println("Source modifiers:")
-	fmt.Println("  FILE_      Read command data from file path")
-	fmt.Println("  URL_       Read command data from URL")
-	fmt.Println()
-	fmt.Println("Examples:")
-	fmt.Println("  aitk SHELL_6c73202d6c61                    # ls -la")
-	fmt.Println("  aitk SHELL_FILE_2f746d702f636d642e7368     # run commands from file")
-	fmt.Println("  aitk FILE_2f6574632f686f737473              # read /etc/hosts")
+	fmt.Println("  FILE_          Read command data from file path")
+	fmt.Println("  URL_           Read command data from URL")
 }
