@@ -1,18 +1,21 @@
 package repl
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 
+	"golang.org/x/term"
+	"os"
+
 	"github.com/topxeq/xxaitk/internal/handler"
+	"github.com/topxeq/xxaitk/internal/script"
 )
 
 const version = "0.1.0"
 
 type REPL struct {
-	debug bool
+	debug   bool
+	history []string
 }
 
 func New(debug bool) *REPL {
@@ -22,14 +25,17 @@ func New(debug bool) *REPL {
 func (r *REPL) Run() {
 	fmt.Printf("aitk v%s | type .help for help\n\n", version)
 
-	reader := bufio.NewReader(os.Stdin)
-	history := []string{}
-	_ = history
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		r.runSimple()
+		return
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	t := term.NewTerminal(os.Stdin, "aitk> ")
 
 	for {
-		fmt.Print("aitk> ")
-
-		line, err := reader.ReadString('\n')
+		line, err := t.ReadLine()
 		if err != nil {
 			break
 		}
@@ -39,26 +45,49 @@ func (r *REPL) Run() {
 			continue
 		}
 
-		history = append(history, line)
+		r.history = append(r.history, line)
+
+		term.Restore(int(os.Stdin.Fd()), oldState)
 
 		if strings.HasPrefix(line, ".") {
 			if r.handleDotCommand(line) {
-				break
+				return
 			}
-			continue
-		}
-
-		if strings.HasPrefix(line, ":") {
+		} else if strings.HasPrefix(line, ":") {
 			r.handleColonCommand(line)
-			continue
+		} else {
+			r.executeScript(line)
 		}
 
-		r.executeScript(line)
+		oldState, _ = term.MakeRaw(int(os.Stdin.Fd()))
+		t = term.NewTerminal(os.Stdin, "aitk> ")
 	}
 }
 
-func (r *REPL) handleDotCommand(line string) bool {
-	cmd := strings.TrimSpace(line)
+func (r *REPL) runSimple() {
+	var buf [4096]byte
+	for {
+		fmt.Print("aitk> ")
+		n, _ := os.Stdin.Read(buf[:])
+		line := strings.TrimSpace(string(buf[:n]))
+		if line == "" {
+			continue
+		}
+		r.history = append(r.history, line)
+		if strings.HasPrefix(line, ".") {
+			if r.handleDotCommand(line) {
+				return
+			}
+		} else if strings.HasPrefix(line, ":") {
+			r.handleColonCommand(line)
+		} else {
+			r.executeScript(line)
+		}
+	}
+}
+
+func (r *REPL) handleDotCommand(cmd string) bool {
+	cmd = strings.TrimSpace(cmd)
 	switch cmd {
 	case ".help":
 		fmt.Println("  .help        Show this help")
@@ -66,9 +95,10 @@ func (r *REPL) handleDotCommand(line string) bool {
 		fmt.Println("  .builtins    List all script builtins")
 		fmt.Println("  .debug on    Enable debug mode")
 		fmt.Println("  .debug off   Disable debug mode")
+		fmt.Println("  .history     Show command history")
 		fmt.Println("  .quit        Exit REPL")
 		fmt.Println()
-		fmt.Println("  :<prefix> <args>   Execute prefix command (no hex encoding needed)")
+		fmt.Println("  :<prefix> <args>   Execute prefix command (no hex encoding)")
 		fmt.Println("  <script>           Execute script statement")
 	case ".prefixes":
 		for _, p := range handler.KnownPrefixes() {
@@ -83,6 +113,10 @@ func (r *REPL) handleDotCommand(line string) bool {
 	case ".debug off":
 		r.debug = false
 		fmt.Println("  Debug mode disabled")
+	case ".history":
+		for i, h := range r.history {
+			fmt.Printf("  %4d  %s\n", i+1, h)
+		}
 	case ".quit":
 		return true
 	default:
@@ -115,12 +149,34 @@ func (r *REPL) handleColonCommand(line string) {
 }
 
 func (r *REPL) executeScript(line string) {
+	script.PrintCallback = func(s string) {
+		fmt.Println(s)
+	}
 	h := &handler.ScriptHandler{}
 	resp := h.Handle(line, "repl")
-	resp.Print()
-}
-
-func readLine(reader *bufio.Reader) string {
-	line, _ := reader.ReadString('\n')
-	return strings.TrimSpace(line)
+	if resp.Ok {
+		if data, ok := resp.Data.(*handler.ScriptResult); ok {
+			if data.RawResult != nil {
+				switch v := data.RawResult.(type) {
+				case script.NilObject:
+				case script.BoolObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				case script.IntObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				case script.FloatObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				case script.StringObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				case script.ListObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				case script.MapObject:
+					fmt.Printf("  => %s\n", v.Inspect())
+				default:
+					fmt.Printf("  => %s\n", v.Inspect())
+				}
+			}
+		}
+	} else {
+		resp.Print()
+	}
 }

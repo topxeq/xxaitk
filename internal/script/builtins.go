@@ -1,14 +1,19 @@
 package script
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"math/rand"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -28,6 +33,7 @@ func init() {
 	registerMapBuiltins()
 	registerJSONBuiltins()
 	registerIOBuiltins()
+	registerNetBuiltins()
 	registerTypeBuiltins()
 	registerConvBuiltins()
 	registerLogBuiltins()
@@ -55,7 +61,8 @@ func init() {
 		"map_del", "map_len", "map_merge",
 		"json_encode", "json_decode", "json_get", "json_set", "json_has",
 		"io_read_file", "io_exists", "io_is_dir", "io_is_file",
-		"io_list_dir", "io_size",
+		"io_list_dir", "io_size", "io_mkdir",
+		"net_http_get", "net_dns_lookup",
 		"type_of", "type_is_nil", "type_is_bool", "type_is_int",
 		"type_is_float", "type_is_string", "type_is_list", "type_is_map",
 		"type_is_fn",
@@ -1029,6 +1036,130 @@ func registerIOBuiltins() {
 			return IntObject(0)
 		}
 		return IntObject(info.Size())
+	})
+	registerBuiltin("io_mkdir", func(args ...Object) Object {
+		if len(args) < 1 {
+			return BoolObject(false)
+		}
+		perm := os.FileMode(0755)
+		if len(args) >= 2 {
+			if p, ok := toInt(args[1]); ok {
+				perm = os.FileMode(p)
+			}
+		}
+		err := os.MkdirAll(args[0].Inspect(), perm)
+		return BoolObject(err == nil)
+	})
+	registerBuiltin("io_copy", func(args ...Object) Object {
+		if len(args) < 2 {
+			return BoolObject(false)
+		}
+		src, err := os.ReadFile(args[0].Inspect())
+		if err != nil {
+			return BoolObject(false)
+		}
+		err = os.WriteFile(args[1].Inspect(), src, 0644)
+		return BoolObject(err == nil)
+	})
+	registerBuiltin("io_move", func(args ...Object) Object {
+		if len(args) < 2 {
+			return BoolObject(false)
+		}
+		err := os.Rename(args[0].Inspect(), args[1].Inspect())
+		return BoolObject(err == nil)
+	})
+	registerBuiltin("io_remove", func(args ...Object) Object {
+		if len(args) < 1 {
+			return BoolObject(false)
+		}
+		err := os.Remove(args[0].Inspect())
+		return BoolObject(err == nil)
+	})
+	registerBuiltin("io_temp_dir", func(args ...Object) Object {
+		return StringObject(os.TempDir())
+	})
+	registerBuiltin("io_abs_path", func(args ...Object) Object {
+		if len(args) < 1 {
+			return StringObject("")
+		}
+		path, err := filepath.Abs(args[0].Inspect())
+		if err != nil {
+			return StringObject(args[0].Inspect())
+		}
+		return StringObject(path)
+	})
+}
+
+func registerNetBuiltins() {
+	registerBuiltin("net_http_get", func(args ...Object) Object {
+		if len(args) < 1 {
+			return NilObject{}
+		}
+		urlStr := args[0].Inspect()
+		insecure := false
+		timeout := 30
+		if len(args) >= 2 {
+			if m, ok := args[1].(MapObject); ok {
+				if v, ok := m.Pairs["insecure"]; ok {
+					insecure = IsTruthy(v)
+				}
+				if v, ok := m.Pairs["timeout"]; ok {
+					if i, ok := toInt(v); ok {
+						timeout = int(i)
+					}
+				}
+			}
+		}
+		transport := &http.Transport{}
+		if insecure {
+			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
+		client := &http.Client{
+			Timeout:   time.Duration(timeout) * time.Second,
+			Transport: transport,
+		}
+		resp, err := client.Get(urlStr)
+		if err != nil {
+			return NilObject{}
+		}
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return NilObject{}
+		}
+		return StringObject(string(body))
+	})
+	registerBuiltin("net_dns_lookup", func(args ...Object) Object {
+		if len(args) < 1 {
+			return ListObject{}
+		}
+		addrs, err := net.LookupHost(args[0].Inspect())
+		if err != nil {
+			return ListObject{}
+		}
+		elems := make([]Object, len(addrs))
+		for i, a := range addrs {
+			elems[i] = StringObject(a)
+		}
+		return ListObject{Elements: elems}
+	})
+	registerBuiltin("net_tcp_connect", func(args ...Object) Object {
+		if len(args) < 1 {
+			return BoolObject(false)
+		}
+		addr := args[0].Inspect()
+		timeout := 10 * time.Second
+		if len(args) >= 2 {
+			if t, ok := toInt(args[1]); ok {
+				timeout = time.Duration(t) * time.Second
+			}
+		}
+		conn, err := net.DialTimeout("tcp", addr, timeout)
+		if err != nil {
+			return BoolObject(false)
+		}
+		conn.Close()
+		return BoolObject(true)
 	})
 }
 

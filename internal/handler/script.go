@@ -21,10 +21,11 @@ type ScriptPayload struct {
 }
 
 type ScriptResult struct {
-	Result    interface{}   `json:"result"`
-	Output    []string      `json:"output"`
-	DurationMs int64         `json:"duration_ms"`
-	Debug     *ScriptDebug  `json:"debug,omitempty"`
+	Result     interface{}  `json:"result"`
+	Output     []string     `json:"output"`
+	DurationMs int64        `json:"duration_ms"`
+	Debug      *ScriptDebug `json:"debug,omitempty"`
+	RawResult  script.Object `json:"-"`
 }
 
 type ScriptDebug struct {
@@ -83,6 +84,7 @@ func (h *ScriptHandler) Handle(data string, source string) *output.Response {
 		Output:     vm.Outputs(),
 		DurationMs: time.Since(start).Milliseconds(),
 		Debug:      debugInfo,
+		RawResult:  result,
 	}, start)
 }
 

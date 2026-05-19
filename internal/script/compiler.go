@@ -390,6 +390,8 @@ func (c *Compiler) compileCall(node *Node) error {
 }
 
 func (c *Compiler) compileIf(node *Node) error {
+	var jumpEnds []int
+
 	if err := c.compileNode(node.Children[0]); err != nil {
 		return err
 	}
@@ -398,28 +400,33 @@ func (c *Compiler) compileIf(node *Node) error {
 	if err := c.compileNode(node.Children[1]); err != nil {
 		return err
 	}
+	jumpEnd := c.emitJump(OpJump, node.Line)
+	jumpEnds = append(jumpEnds, jumpEnd)
 
-	childIdx := 2
-	if childIdx < len(node.Children) {
-		jumpEnd := c.emitJump(OpJump, node.Line)
-		c.patchJump(jumpIfFalse)
+	c.patchJump(jumpIfFalse)
 
-		for childIdx < len(node.Children) {
-			child := node.Children[childIdx]
-			childIdx++
-			if child.Type == NodeBlockStmt {
-				if err := c.compileNode(child); err != nil {
-					return err
-				}
-			} else if child.Type == NodeIfStmt {
-				if err := c.compileIf(child); err != nil {
-					return err
-				}
+	for childIdx := 2; childIdx < len(node.Children); childIdx++ {
+		child := node.Children[childIdx]
+		if child.Type == NodeIfStmt {
+			if err := c.compileNode(child.Children[0]); err != nil {
+				return err
+			}
+			jumpIfFalse = c.emitJump(OpJumpIfFalse, child.Line)
+			if err := c.compileNode(child.Children[1]); err != nil {
+				return err
+			}
+			jumpEnd = c.emitJump(OpJump, child.Line)
+			jumpEnds = append(jumpEnds, jumpEnd)
+			c.patchJump(jumpIfFalse)
+		} else if child.Type == NodeBlockStmt {
+			if err := c.compileNode(child); err != nil {
+				return err
 			}
 		}
-		c.patchJump(jumpEnd)
-	} else {
-		c.patchJump(jumpIfFalse)
+	}
+
+	for _, je := range jumpEnds {
+		c.patchJump(je)
 	}
 
 	return nil
