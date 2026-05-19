@@ -73,7 +73,7 @@ release:
   footer: |
     ---
 
-    **Full Changelog**: https://github.com/topxeq/xxaitk/compare/{{ .Previous.Tag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/topxeq/xxaitk/commits/{{ .Tag }}
 
 changelog:
   sort: asc
