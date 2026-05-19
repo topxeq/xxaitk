@@ -14,7 +14,6 @@ builds:
       - linux
       - darwin
       - windows
-      - freebsd
     goarch:
       - amd64
       - arm64
@@ -32,16 +31,13 @@ builds:
         goarch: arm
       - goos: windows
         goarch: arm64
-      - goos: freebsd
-        goarch: arm
-      - goos: freebsd
-        goarch: arm64
     ldflags:
       - -s -w -X main.version={{.Version}}
 
 archives:
   - id: default
-    format: tar.gz
+    formats:
+      - tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -52,7 +48,8 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - LICENSE
       - README.md
@@ -62,7 +59,7 @@ checksum:
   algorithm: sha256
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 release:
   github:
