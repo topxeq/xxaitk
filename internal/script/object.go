@@ -16,6 +16,7 @@ const (
 	ObjMap     ObjectType = "map"
 	ObjFn      ObjectType = "fn"
 	ObjBuiltin ObjectType = "builtin"
+	ObjError  ObjectType = "error"
 )
 
 type Object interface {
@@ -94,6 +95,8 @@ type FnObject struct {
 	Instructions []Instruction
 	Constants    []Object
 	NumLocals    int
+	FreeVars     []string
+	Closure      []Object
 }
 
 func (f FnObject) Type() ObjectType { return ObjFn }
@@ -106,6 +109,13 @@ type BuiltinFn struct {
 
 func (b BuiltinFn) Type() ObjectType { return ObjBuiltin }
 func (b BuiltinFn) Inspect() string  { return "builtin:" + b.Name }
+
+type ErrorObject struct {
+	Message string
+}
+
+func (e ErrorObject) Type() ObjectType { return ObjError }
+func (e ErrorObject) Inspect() string  { return "error: " + e.Message }
 
 func inspectValue(obj Object) string {
 	if obj == nil {

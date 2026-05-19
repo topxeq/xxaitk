@@ -75,6 +75,9 @@ aitk                    # Enter interactive REPL
 |--------|-------------|-------------------|
 | `HTTPGET` | HTTP GET request | URL string or `{"url":"...","headers":{},"insecure":false}` |
 | `HTTPPOST` | HTTP POST request | `{"url":"...","body":"...","content_type":"application/json"}` |
+| `HTTPPUT` | HTTP PUT request | `{"url":"...","body":"...","content_type":"application/json"}` |
+| `HTTPPATCH` | HTTP PATCH request | `{"url":"...","body":"...","content_type":"application/json"}` |
+| `HTTPDELETE` | HTTP DELETE request | URL string or `{"url":"...","headers":{}}` |
 | `PING` | Network connectivity test | Host string or `{"host":"...","port":80}` |
 
 ### File System
@@ -102,6 +105,58 @@ aitk                    # Enter interactive REPL
 | Prefix | Description |
 |--------|-------------|
 | `INFO` | System info (`os`, `cpu`, `mem`, `env`, `all`) |
+
+### Crypto
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `HASH` | Hash data or file | `{"data":"hello","algo":"sha256"}` or `{"file":"/path","algo":"md5"}` |
+
+Algorithms: `md5`, `sha1`, `sha256`, `sha512`
+
+### Process Management
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `PROCESS` | Start/stop/list background processes | `{"action":"start","command":"..."}` |
+
+Actions: `start`, `status`, `stop`, `list`
+
+### Diff
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `DIFF` | Compare files or strings | `{"file_a":"...","file_b":"..."}` or `{"content_a":"...","content_b":"..."}` |
+
+### Archive
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `ARCHIVE` | Pack/unpack/list archives (zip, tar, tar.gz) | `{"action":"pack","format":"zip","files":["..."],"target":"..."}` |
+
+Actions: `pack`, `unpack`, `list`
+Formats: `zip`, `tar`, `tar.gz` / `tgz`
+
+### Database
+
+| Prefix | Description | Hex Decoded Format |
+|--------|-------------|-------------------|
+| `SQL` | Execute SQL queries | `{"driver":"sqlite","dsn":"/path/db.db","query":"SELECT 1"}` |
+
+Supported drivers (all pure Go, no CGO):
+- `sqlite` — [modernc.org/sqlite](https://modernc.org/sqlite)
+- `mysql` — [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)
+- `postgres` / `postgresql` / `pg` — [lib/pq](https://github.com/lib/pq)
+- `mssql` / `sqlserver` — [go-mssqldb](https://github.com/microsoft/go-mssqldb)
+- `oracle` / `ora` — [go-ora](https://github.com/sijms/go-ora)
+
+```bash
+# SQLite query
+aitk SQL_<hex of {"driver":"sqlite","dsn":"/tmp/test.db","query":"SELECT * FROM users"}>
+
+# MySQL query
+aitk SQL_<hex of {"driver":"mysql","dsn":"user:pass@tcp(localhost:3306)/mydb","query":"SHOW TABLES"}>
+```
 
 ## Data Source Modifiers
 
@@ -220,12 +275,14 @@ print(str_from_int(add(3, 7)))   // 10
 | `list_*` | `list_len`, `list_push`, `list_pop`, `list_shift`, `list_get`, `list_set`, `list_contains`, `list_index`, `list_join`, `list_map`, `list_filter`, `list_sort`, `list_reverse`, `list_slice`, `list_flat`, `list_reduce`, `list_find` |
 | `map_*` | `map_get`, `map_set`, `map_has`, `map_keys`, `map_values`, `map_del`, `map_len`, `map_merge` |
 | `json_*` | `json_encode`, `json_decode`, `json_get`, `json_set`, `json_has` |
-| `io_*` | `io_read_file`, `io_write_file`, `io_append_file`, `io_exists`, `io_is_dir`, `io_is_file`, `io_list_dir`, `io_size` |
+| `io_*` | `io_read_file`, `io_write_file`, `io_append_file`, `io_exists`, `io_is_dir`, `io_is_file`, `io_list_dir`, `io_size`, `io_mkdir`, `io_copy`, `io_move`, `io_remove`, `io_temp_dir`, `io_abs_path` |
+| `net_*` | `net_http_get`, `net_dns_lookup`, `net_tcp_connect` |
 | `os_*` | `os_exec`, `os_env`, `os_getenv`, `os_cwd`, `os_hostname`, `os_platform`, `os_arch` (require `unsafe: true`) |
 | `time_*` | `time_now`, `time_now_unix`, `time_format`, `time_parse`, `time_sleep`, `time_duration` |
 | `log_*` | `log_info`, `log_warn`, `log_error`, `log_debug` |
 | `type_*` | `type_of`, `type_is_nil`, `type_is_bool`, `type_is_int`, `type_is_float`, `type_is_string`, `type_is_list`, `type_is_map`, `type_is_fn` |
 | `conv_*` | `conv_to_int`, `conv_to_float`, `conv_to_string`, `conv_to_bool`, `conv_hex_encode`, `conv_hex_decode`, `conv_b64_encode`, `conv_b64_decode` |
+| `try`/`catch`/`is_error` | Error handling: `try(fn, args...)` returns `[ok, result]`, `catch(err)` extracts message |
 
 ### Sandbox Mode
 

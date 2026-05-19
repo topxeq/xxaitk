@@ -38,6 +38,7 @@ func init() {
 	registerConvBuiltins()
 	registerLogBuiltins()
 	registerTimeBuiltins()
+	registerErrorHandlingBuiltins()
 	registerOSBuiltins()
 }
 
@@ -71,6 +72,7 @@ func init() {
 		"conv_hex_encode", "conv_hex_decode", "conv_b64_encode", "conv_b64_decode",
 		"log_info", "log_warn", "log_error", "log_debug",
 		"time_now", "time_now_unix", "time_format", "time_parse", "time_sleep", "time_duration",
+		"try", "catch", "is_error",
 	}
 	for _, name := range safe {
 		safeBuiltins[name] = true
@@ -965,11 +967,11 @@ func jsonToObject(v interface{}) Object {
 func registerIOBuiltins() {
 	registerBuiltin("io_read_file", func(args ...Object) Object {
 		if len(args) < 1 {
-			return StringObject("")
+			return ErrorObject{Message: "io_read_file requires a path argument"}
 		}
 		data, err := os.ReadFile(args[0].Inspect())
 		if err != nil {
-			return NilObject{}
+			return ErrorObject{Message: err.Error()}
 		}
 		return StringObject(string(data))
 	})
@@ -1363,6 +1365,48 @@ func registerTimeBuiltins() {
 			return IntObject(0)
 		}
 		return IntObject(int64(t2.Sub(t1).Milliseconds()))
+	})
+}
+
+func registerErrorHandlingBuiltins() {
+	registerBuiltin("try", func(args ...Object) Object {
+		if len(args) < 1 {
+			return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "try requires a function argument"}}}
+		}
+		fn, ok := args[0].(BuiltinFn)
+		if !ok {
+			if _, ok2 := args[0].(*FnObject); ok2 {
+				return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "try with script fn not yet supported, use try with builtin fn"}}}
+			}
+			return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "argument is not callable"}}}
+		}
+		callArgs := []Object{}
+		if len(args) > 1 {
+			callArgs = args[1:]
+		}
+		defer func() {
+			recover()
+		}()
+		result := fn.Fn(callArgs...)
+		if err, ok := result.(ErrorObject); ok {
+			return ListObject{Elements: []Object{BoolObject(false), err}}
+		}
+		return ListObject{Elements: []Object{BoolObject(true), result}}
+	})
+	registerBuiltin("catch", func(args ...Object) Object {
+		if len(args) < 1 {
+			return StringObject("")
+		}
+		if err, ok := args[0].(ErrorObject); ok {
+			return StringObject(err.Message)
+		}
+		return StringObject("")
+	})
+	registerBuiltin("is_error", func(args ...Object) Object {
+		if len(args) < 1 {
+			return BoolObject(false)
+		}
+		return BoolObject(args[0].Type() == ObjError)
 	})
 }
 

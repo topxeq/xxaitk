@@ -307,3 +307,38 @@ func TestNilComparison(t *testing.T) {
 		t.Errorf("expected true, got %v", result)
 	}
 }
+
+func TestClosure(t *testing.T) {
+	_, outputs := runScript(t, `let make_adder = fn(x) {
+    return fn(y) { return x + y }
+}
+let add5 = make_adder(5)
+print(str_from_int(add5(3)))
+print(str_from_int(add5(10)))`)
+	if outputs[0] != "8" || outputs[1] != "15" {
+		t.Errorf("outputs = %v, want [8 15]", outputs)
+	}
+}
+
+func TestClosureMultipleCaptures(t *testing.T) {
+	_, outputs := runScript(t, `let x = 10
+let y = 20
+let getter = fn() { return x + y }
+print(str_from_int(getter()))`)
+	if outputs[0] != "30" {
+		t.Errorf("outputs = %v, want [30]", outputs)
+	}
+}
+
+func TestClosureCounter(t *testing.T) {
+	_, outputs := runScript(t, `let make_counter = fn(start) {
+    return fn() {
+        return start
+    }
+}
+let c = make_counter(42)
+print(str_from_int(c()))`)
+	if outputs[0] != "42" {
+		t.Errorf("outputs = %v, want [42]", outputs)
+	}
+}

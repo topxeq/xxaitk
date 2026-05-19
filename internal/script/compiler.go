@@ -13,16 +13,21 @@ type Compiler struct {
 	globalNames  []string
 	localScopes  []map[string]int
 	localDepth   int
-	localCounts []int
+	localCounts  []int
+	freeVars     []string
+	freeVarSet   map[string]int
+	parentLocals []map[string]int
 }
 
 func NewCompiler() *Compiler {
 	return &Compiler{
-		globals:     make(map[string]int),
-		globalNames: []string{},
-		localScopes: []map[string]int{{}},
-		localDepth:  0,
-		localCounts: []int{0},
+		globals:      make(map[string]int),
+		globalNames:  []string{},
+		localScopes:  []map[string]int{{}},
+		localDepth:   0,
+		localCounts:  []int{0},
+		freeVars:     []string{},
+		freeVarSet:   map[string]int{},
 	}
 }
 
@@ -86,12 +91,33 @@ func (c *Compiler) popScope() {
 	c.localDepth--
 }
 
+func (c *Compiler) allLocalScopes() []map[string]int {
+	result := make([]map[string]int, len(c.localScopes))
+	for i, scope := range c.localScopes {
+		newScope := make(map[string]int, len(scope))
+		for k, v := range scope {
+			newScope[k] = v
+		}
+		result[i] = newScope
+	}
+	return result
+}
+
 func (c *Compiler) defineLocal(name string) int {
 	scope := c.localScopes[len(c.localScopes)-1]
 	idx := c.localCounts[len(c.localCounts)-1]
 	scope[name] = idx
 	c.localCounts[len(c.localCounts)-1]++
 	return idx
+}
+
+func (c *Compiler) isParentLocal(name string) bool {
+	for _, scope := range c.parentLocals {
+		if _, ok := scope[name]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Compiler) defineGlobal(name string) int {
@@ -263,6 +289,15 @@ func (c *Compiler) compileNode(node *Node) error {
 		isLocal, idx, _ := c.resolveVar(node.Value)
 		if isLocal {
 			c.emit(OpGetLocal, idx, node.Line)
+		} else if idx >= 0 {
+			c.emit(OpGetGlobal, idx, node.Line)
+		} else if freeIdx, ok := c.freeVarSet[node.Value]; ok {
+			c.emit(OpGetFree, freeIdx, node.Line)
+		} else if c.isParentLocal(node.Value) {
+			freeIdx := len(c.freeVars)
+			c.freeVars = append(c.freeVars, node.Value)
+			c.freeVarSet[node.Value] = freeIdx
+			c.emit(OpGetFree, freeIdx, node.Line)
 		} else {
 			idx = c.defineGlobal(node.Value)
 			c.emit(OpGetGlobal, idx, node.Line)
@@ -503,7 +538,12 @@ func (c *Compiler) compileFor(node *Node) error {
 func (c *Compiler) compileFnDecl(node *Node) error {
 	fn := c.compileFnBody(node)
 	idx := c.addConstant(fn)
-	c.emit(OpConstant, idx, node.Line)
+	if len(fn.FreeVars) > 0 {
+		c.emit(OpConstant, idx, node.Line)
+		c.emit(OpClosure, 0, node.Line)
+	} else {
+		c.emit(OpConstant, idx, node.Line)
+	}
 	name := node.Value
 	if i := strings.Index(name, "("); i > 0 {
 		name = name[:i]
@@ -516,7 +556,12 @@ func (c *Compiler) compileFnDecl(node *Node) error {
 func (c *Compiler) compileFnLiteral(node *Node) error {
 	fn := c.compileFnBody(node)
 	idx := c.addConstant(fn)
-	c.emit(OpConstant, idx, node.Line)
+	if len(fn.FreeVars) > 0 {
+		c.emit(OpConstant, idx, node.Line)
+		c.emit(OpClosure, 0, node.Line)
+	} else {
+		c.emit(OpConstant, idx, node.Line)
+	}
 	return nil
 }
 
@@ -532,6 +577,9 @@ func (c *Compiler) compileFnBody(node *Node) *FnObject {
 	}
 
 	subCompiler := NewCompiler()
+	subCompiler.globalNames = c.globalNames
+	subCompiler.globals = c.globals
+	subCompiler.parentLocals = c.allLocalScopes()
 	subCompiler.pushScope()
 
 	for _, p := range params {
@@ -544,11 +592,14 @@ func (c *Compiler) compileFnBody(node *Node) *FnObject {
 
 	subCompiler.emit(OpNilReturn, 0, 0)
 
+	freeVars := subCompiler.freeVars
+
 	return &FnObject{
 		Name:         node.Value,
 		Params:       params,
 		Instructions: subCompiler.Instructions(),
 		Constants:    subCompiler.Constants(),
 		NumLocals:    subCompiler.localCounts[0],
+		FreeVars:     freeVars,
 	}
 }

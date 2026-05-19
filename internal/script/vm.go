@@ -82,6 +82,26 @@ func (vm *VM) AddOutput(s string) {
 	vm.outputs = append(vm.outputs, s)
 }
 
+func (vm *VM) currentFn() *FnObject {
+	if len(vm.frames) == 0 {
+		return nil
+	}
+	return vm.frames[len(vm.frames)-1].Fn
+}
+
+func (vm *VM) resolveVarInCurrentFrame(name string) (bool, int, bool) {
+	frame := vm.currentFn()
+	if frame == nil {
+		return false, -1, false
+	}
+	for i, p := range frame.Params {
+		if p == name {
+			return true, i, false
+		}
+	}
+	return false, -1, false
+}
+
 func (vm *VM) execute() (Object, error) {
 	for {
 		if vm.opCount > vm.maxOps {
@@ -289,6 +309,47 @@ func (vm *VM) execute() (Object, error) {
 			}
 			val := vm.pop()
 			vm.globals[name] = val
+
+		case OpGetFree:
+			fn := vm.currentFn()
+			if fn != nil && inst.Arg < len(fn.Closure) {
+				vm.push(fn.Closure[inst.Arg])
+			} else {
+				vm.push(NilObject{})
+			}
+
+		case OpClosure:
+			fnObj := vm.pop()
+			if fn, ok := fnObj.(*FnObject); ok {
+				closure := make([]Object, len(fn.FreeVars))
+				for i, varName := range fn.FreeVars {
+					isLocal, idx, _ := vm.resolveVarInCurrentFrame(varName)
+					if isLocal {
+						stackIdx := vm.frameBase() + idx
+						if stackIdx < len(vm.stack) {
+							closure[i] = vm.stack[stackIdx]
+						} else {
+							closure[i] = NilObject{}
+						}
+					} else if val, ok := vm.globals[varName]; ok {
+						closure[i] = val
+					} else {
+						closure[i] = NilObject{}
+					}
+				}
+				closedFn := &FnObject{
+					Name:         fn.Name,
+					Params:       fn.Params,
+					Instructions: fn.Instructions,
+					Constants:    fn.Constants,
+					NumLocals:    fn.NumLocals,
+					FreeVars:     fn.FreeVars,
+					Closure:      closure,
+				}
+				vm.push(closedFn)
+			} else {
+				vm.push(fnObj)
+			}
 
 		case OpCall:
 			argCount := inst.Arg

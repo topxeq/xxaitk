@@ -40,6 +40,9 @@ var knownPrefixes = map[string]bool{
 	"EVAL":      true,
 	"HTTPGET":   true,
 	"HTTPPOST":  true,
+	"HTTPPUT":   true,
+	"HTTPPATCH": true,
+	"HTTPDELETE": true,
 	"FILE":      true,
 	"READFILE":  true,
 	"WRITEFILE": true,
@@ -53,6 +56,11 @@ var knownPrefixes = map[string]bool{
 	"URLENC":    true,
 	"URLDEC":    true,
 	"PING":      true,
+	"HASH":      true,
+	"PROCESS":   true,
+	"DIFF":      true,
+	"ARCHIVE":   true,
+	"SQL":       true,
 }
 
 func IsKnownPrefix(prefix string) bool {

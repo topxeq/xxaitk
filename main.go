@@ -10,7 +10,7 @@ import (
 	"github.com/topxeq/xxaitk/internal/repl"
 )
 
-var version = "0.1.0"
+var version = "0.2.0"
 
 func main() {
 	args := os.Args[1:]
@@ -59,6 +59,9 @@ func registerHandlers() {
 	handler.Register("EVAL", &handler.EvalHandler{})
 	handler.Register("HTTPGET", &handler.HTTPGetHandler{})
 	handler.Register("HTTPPOST", &handler.HTTPPostHandler{})
+	handler.Register("HTTPPUT", &handler.HTTPMethodHandler{Method: "PUT"})
+	handler.Register("HTTPPATCH", &handler.HTTPMethodHandler{Method: "PATCH"})
+	handler.Register("HTTPDELETE", &handler.HTTPMethodHandler{Method: "DELETE"})
 	handler.Register("FILE", &handler.FileHandler{})
 	handler.Register("READFILE", &handler.FileHandler{})
 	handler.Register("WRITEFILE", &handler.WriteFileHandler{})
@@ -72,6 +75,14 @@ func registerHandlers() {
 	handler.Register("URLENC", &handler.URLEncHandler{})
 	handler.Register("URLDEC", &handler.URLDecHandler{})
 	handler.Register("PING", &handler.PingHandler{})
+	handler.Register("HASH", &handler.HashHandler{})
+	handler.Register("PROCESS", &handler.ProcessHandler{})
+	handler.Register("DIFF", &handler.DiffHandler{})
+	handler.Register("ARCHIVE", &handler.ArchiveHandler{})
+	handler.Register("SQL", &handler.SQLHandler{})
+	handler.Register("PROCESS", &handler.ProcessHandler{})
+	handler.Register("DIFF", &handler.DiffHandler{})
+	handler.Register("HASH", &handler.HashHandler{})
 }
 
 func printHelp() {
