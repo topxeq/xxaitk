@@ -1,19 +1,23 @@
 # xxAiToolkit (aitk)
 
-A CLI toolkit designed for AI agents, using hex-encoded arguments to eliminate shell special character issues across different shells (bash, zsh, fish, PowerShell).
+**A one-stop CLI toolkit for AI agents** — covering 80%+ of common AI tool-use scenarios, so agents no longer need to hunt for various tools across the system.
 
-## The Problem
+AI agents today face two critical problems when interacting with the host system:
 
-When AI agents execute commands via shell, special characters (`$`, `` ` ``, `\`, `"`, `'`, `|`, `&`, `<`, `>`, spaces) behave inconsistently across different shells, causing repeated failures and even accidental operations.
+1. **Shell chaos**: Special characters (`$`, `` ` ``, `\`, `"`, `'`, `|`, `&`, `<`, `>`, spaces) behave inconsistently across bash/zsh/fish/PowerShell, causing repeated failures and even accidental operations.
+2. **Tool fragmentation**: To accomplish common tasks — run a command, read/write a file, make an HTTP request, process JSON, encode/decode data, check system info — an AI agent must locate and learn `sh`, `cat`, `curl`, `jq`, `base64`, `xxd`, `uname`, `df`, and many more, each with its own syntax, edge cases, and output format.
 
-## The Solution
-
-All data is transmitted as hex-encoded strings, completely bypassing shell interpretation.
+**aitk solves both**: all arguments are hex-encoded (eliminating shell interpretation issues entirely), and all results are structured JSON (eliminating parsing ambiguity). One tool, one interface, one output format — covering shell execution, file I/O, HTTP requests, encoding/decoding, system introspection, and a built-in scripting language for complex logic.
 
 ```
-aitk SHELL_6c73202d6c61        # executes "ls -la"
-aitk FILE_2f6574632f686f737473  # reads /etc/hosts
+aitk SHELL_6c73202d6c61        # execute shell command
+aitk FILE_2f6574632f686f737473  # read a file
+aitk HTTPGET_687474703a2f2f...  # make HTTP request
+aitk INFO_616c6c               # get system info
+aitk SCRIPT_7072696e742822...   # run complex logic
 ```
+
+Every operation returns consistent JSON. No more guessing output formats. No more shell escaping hell.
 
 ## Install
 
