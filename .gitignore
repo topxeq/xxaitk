@@ -1,0 +1,5 @@
+aitk
+*.exe
+*.test
+*.out
+.env
