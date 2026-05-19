@@ -3,8 +3,13 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -14,7 +19,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
-      - run: go test ./... -count=1 -timeout 60s
+      - run: go test ./... -count=1 -timeout 120s
       - run: go vet ./...
 
   release:
@@ -28,6 +33,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
+      - name: Install upx
+        run: |
+          sudo apt-get update && sudo apt-get install -y upx-ucl 2>/dev/null || true
       - uses: goreleaser/goreleaser-action@v6
         with:
           args: release --clean

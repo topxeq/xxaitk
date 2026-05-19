@@ -1,36 +1,91 @@
 version: 2
 
+before:
+  hooks:
+    - go mod tidy
+
 builds:
   - main: .
     binary: aitk
+    id: aitk
     env:
       - CGO_ENABLED=0
     goos:
       - linux
       - darwin
       - windows
+      - freebsd
     goarch:
       - amd64
       - arm64
+      - arm
+      - "386"
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: darwin
+        goarch: arm
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
     ldflags:
       - -s -w -X main.version={{.Version}}
 
 archives:
-  - format: tar.gz
+  - id: default
+    format: tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "arm64" }}aarch64
+      {{- else if eq .Arch "arm" }}armv{{ .Arm }}
+      {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
+    files:
+      - LICENSE
+      - README.md
 
 checksum:
   name_template: "checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
 
 release:
   github:
     owner: topxeq
     name: xxaitk
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## xxAiToolkit (aitk) {{ .Tag }}
+  footer: |
+    ---
+
+    **Full Changelog**: https://github.com/topxeq/xxaitk/compare/{{ .Previous.Tag }}...{{ .Tag }}
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge branch
