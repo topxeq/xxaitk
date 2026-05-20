@@ -35,6 +35,12 @@ curl -fsSL https://raw.githubusercontent.com/topxeq/xxaitk/main/install.sh | bas
 go install github.com/topxeq/xxaitk@latest
 ```
 
+**Or download from GitHub Releases:**
+
+[https://github.com/topxeq/xxaitk/releases/latest](https://github.com/topxeq/xxaitk/releases/latest)
+
+Available platforms: Linux (x86_64 / aarch64 / armv7 / armv6 / i386), macOS (x86_64 / aarch64), Windows (x86_64 / i386)
+
 **Or build from source:**
 
 ```bash
