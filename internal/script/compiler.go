@@ -204,6 +204,11 @@ func (c *Compiler) compileNode(node *Node) error {
 					c.emit(OpGetLocal, idx, target.Line)
 				} else if freeIdx, ok := c.freeVarSet[target.Value]; ok {
 					c.emit(OpGetFree, freeIdx, target.Line)
+				} else if c.isParentLocal(target.Value) {
+					freeIdx := len(c.freeVars)
+					c.freeVars = append(c.freeVars, target.Value)
+					c.freeVarSet[target.Value] = freeIdx
+					c.emit(OpGetFree, freeIdx, target.Line)
 				} else {
 					if _, ok := c.globals[target.Value]; !ok {
 						c.defineGlobal(target.Value)
@@ -714,20 +719,42 @@ func (c *Compiler) compileFnBody(node *Node) *FnObject {
 		subCompiler.defineLocal(p)
 	}
 
-	if err := subCompiler.compileNode(bodyNode); err != nil {
-		subCompiler.emit(OpNilReturn, 0, 0)
+	if bodyNode.Type == NodeBlockStmt {
+		for _, child := range bodyNode.Children {
+			if err := subCompiler.compileNode(child); err != nil {
+				subCompiler.emit(OpNilReturn, 0, 0)
+				break
+			}
+		}
+	} else {
+		if err := subCompiler.compileNode(bodyNode); err != nil {
+			subCompiler.emit(OpNilReturn, 0, 0)
+		}
 	}
 
 	subCompiler.emit(OpNilReturn, 0, 0)
 
 	freeVars := subCompiler.freeVars
 
+	locals := make(map[string]int)
+	for _, scope := range subCompiler.localScopes {
+		for name, idx := range scope {
+			locals[name] = idx
+		}
+	}
+
+	totalLocals := len(params)
+	for _, count := range subCompiler.localCounts[1:] {
+		totalLocals += count
+	}
+
 	return &FnObject{
 		Name:         node.Value,
 		Params:       params,
+		Locals:       locals,
 		Instructions: subCompiler.Instructions(),
 		Constants:    subCompiler.Constants(),
-		NumLocals:    subCompiler.localCounts[0],
+		NumLocals:    totalLocals,
 		FreeVars:     freeVars,
 	}
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -71,7 +72,9 @@ func (h *NetDownloadHandler) Handle(data string, source string) *output.Response
 
 	client := &http.Client{Timeout: timeout}
 	if payload.Insecure {
-		client.Transport = &http.Transport{}
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 	}
 
 	req, err := http.NewRequest("GET", payload.URL, nil)

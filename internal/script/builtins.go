@@ -72,7 +72,7 @@ func init() {
 		"conv_hex_encode", "conv_hex_decode", "conv_b64_encode", "conv_b64_decode",
 		"log_info", "log_warn", "log_error", "log_debug",
 		"time_now", "time_now_unix", "time_format", "time_parse", "time_sleep", "time_duration",
-		"try", "catch", "is_error",
+		"try", "catch", "is_error", "error",
 		"__iter_len",
 	}
 	for _, name := range safe {
@@ -88,6 +88,16 @@ func GetBuiltins(unsafe bool) map[string]BuiltinFn {
 		}
 	}
 	return result
+}
+
+func strArg(args []Object, idx int) string {
+	if idx >= len(args) {
+		return ""
+	}
+	if s, ok := args[idx].(StringObject); ok {
+		return string(s)
+	}
+	return ""
 }
 
 func registerStrBuiltins() {
@@ -138,10 +148,10 @@ func registerStrBuiltins() {
 		if len(args) < 1 {
 			return ListObject{}
 		}
-		s := args[0].Inspect()
+		s := strArg(args, 0)
 		sep := ""
 		if len(args) >= 2 {
-			sep = args[1].Inspect()
+			sep = strArg(args, 1)
 		}
 		if sep == "" {
 			sep = " "
@@ -157,10 +167,7 @@ func registerStrBuiltins() {
 		if len(args) < 1 {
 			return StringObject("")
 		}
-		sep := ""
-		if len(args) >= 2 {
-			sep = args[1].Inspect()
-		}
+		sep := strArg(args, 1)
 		if list, ok := args[0].(ListObject); ok {
 			parts := make([]string, len(list.Elements))
 			for i, e := range list.Elements {
@@ -203,30 +210,21 @@ func registerStrBuiltins() {
 		return StringObject(string(runes[start:end]))
 	})
 	registerBuiltin("str_trim", func(args ...Object) Object {
-		if len(args) < 1 {
-			return StringObject("")
-		}
-		return StringObject(strings.TrimSpace(args[0].Inspect()))
+		return StringObject(strings.TrimSpace(strArg(args, 0)))
 	})
 	registerBuiltin("str_upper", func(args ...Object) Object {
-		if len(args) < 1 {
-			return StringObject("")
-		}
-		return StringObject(strings.ToUpper(args[0].Inspect()))
+		return StringObject(strings.ToUpper(strArg(args, 0)))
 	})
 	registerBuiltin("str_lower", func(args ...Object) Object {
-		if len(args) < 1 {
-			return StringObject("")
-		}
-		return StringObject(strings.ToLower(args[0].Inspect()))
+		return StringObject(strings.ToLower(strArg(args, 0)))
 	})
 	registerBuiltin("str_replace", func(args ...Object) Object {
 		if len(args) < 3 {
 			return StringObject("")
 		}
-		s := args[0].Inspect()
-		old := args[1].Inspect()
-		new_ := args[2].Inspect()
+		s := strArg(args, 0)
+		old := strArg(args, 1)
+		new_ := strArg(args, 2)
 		n := -1
 		if len(args) >= 4 {
 			if i, ok := toInt(args[3]); ok {
@@ -239,25 +237,25 @@ func registerStrBuiltins() {
 		if len(args) < 2 {
 			return BoolObject(false)
 		}
-		return BoolObject(strings.HasPrefix(args[0].Inspect(), args[1].Inspect()))
+		return BoolObject(strings.HasPrefix(strArg(args, 0), strArg(args, 1)))
 	})
 	registerBuiltin("str_has_suffix", func(args ...Object) Object {
 		if len(args) < 2 {
 			return BoolObject(false)
 		}
-		return BoolObject(strings.HasSuffix(args[0].Inspect(), args[1].Inspect()))
+		return BoolObject(strings.HasSuffix(strArg(args, 0), strArg(args, 1)))
 	})
 	registerBuiltin("str_contains", func(args ...Object) Object {
 		if len(args) < 2 {
 			return BoolObject(false)
 		}
-		return BoolObject(strings.Contains(args[0].Inspect(), args[1].Inspect()))
+		return BoolObject(strings.Contains(strArg(args, 0), strArg(args, 1)))
 	})
 	registerBuiltin("str_index", func(args ...Object) Object {
 		if len(args) < 2 {
 			return IntObject(-1)
 		}
-		return IntObject(strings.Index(args[0].Inspect(), args[1].Inspect()))
+		return IntObject(strings.Index(strArg(args, 0), strArg(args, 1)))
 	})
 	registerBuiltin("str_from_int", func(args ...Object) Object {
 		if len(args) < 1 {
@@ -301,15 +299,12 @@ func registerStrBuiltins() {
 		if len(args) < 2 {
 			return StringObject("")
 		}
-		s := args[0].Inspect()
+		s := strArg(args, 0)
 		n, _ := toInt(args[1])
 		return StringObject(strings.Repeat(s, int(n)))
 	})
 	registerBuiltin("str_reverse", func(args ...Object) Object {
-		if len(args) < 1 {
-			return StringObject("")
-		}
-		s := args[0].Inspect()
+		s := strArg(args, 0)
 		runes := []rune(s)
 		for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
 			runes[i], runes[j] = runes[j], runes[i]
@@ -320,11 +315,11 @@ func registerStrBuiltins() {
 		if len(args) < 2 {
 			return StringObject("")
 		}
-		s := args[0].Inspect()
+		s := strArg(args, 0)
 		n, _ := toInt(args[1])
 		pad := " "
 		if len(args) >= 3 {
-			pad = args[2].Inspect()
+			pad = strArg(args, 2)
 		}
 		for len(s) < int(n) {
 			s = pad + s
@@ -335,11 +330,11 @@ func registerStrBuiltins() {
 		if len(args) < 2 {
 			return StringObject("")
 		}
-		s := args[0].Inspect()
+		s := strArg(args, 0)
 		n, _ := toInt(args[1])
 		pad := " "
 		if len(args) >= 3 {
-			pad = args[2].Inspect()
+			pad = strArg(args, 2)
 		}
 		for len(s) < int(n) {
 			s = s + pad
@@ -347,10 +342,7 @@ func registerStrBuiltins() {
 		return StringObject(s)
 	})
 	registerBuiltin("str_interp", func(args ...Object) Object {
-		if len(args) < 1 {
-			return StringObject("")
-		}
-		tmpl := args[0].Inspect()
+		tmpl := strArg(args, 0)
 		if len(args) >= 2 {
 			if m, ok := args[1].(MapObject); ok {
 				for k, v := range m.Pairs {
@@ -1495,6 +1487,13 @@ func registerErrorHandlingBuiltins() {
 			return BoolObject(false)
 		}
 		return BoolObject(args[0].Type() == ObjError)
+	})
+
+	registerBuiltin("error", func(args ...Object) Object {
+		if len(args) < 1 {
+			return ErrorObject{Message: "unknown error"}
+		}
+		return ErrorObject{Message: args[0].Inspect()}
 	})
 }
 

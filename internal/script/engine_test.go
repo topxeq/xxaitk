@@ -1049,3 +1049,126 @@ print("done")
 		t.Errorf("stack leak test: last output = %q, want done", lastOutput)
 	}
 }
+
+func TestClosureCapturesLocal(t *testing.T) {
+	_, outputs := runEngineTest(t, `
+fn makeCounter() {
+    let count = 0
+    fn inc() {
+        count += 1
+        return count
+    }
+    return inc
+}
+let counter = makeCounter()
+print(str_from_int(counter()))
+print(str_from_int(counter()))
+print(str_from_int(counter()))
+`)
+	if len(outputs) != 3 || outputs[0] != "1" || outputs[1] != "2" || outputs[2] != "3" {
+		t.Errorf("closure captures local = %v, want [1 2 3]", outputs)
+	}
+}
+
+func TestFactoryPattern(t *testing.T) {
+	result, _ := runEngineTest(t, `
+fn makeAdder(x) {
+    fn add(y) { return x + y }
+    return add
+}
+let add5 = makeAdder(5)
+add5(3)
+`)
+	if result.Inspect() != "8" {
+		t.Errorf("factory pattern = %s, want 8", result.Inspect())
+	}
+}
+
+func TestErrorBuiltin(t *testing.T) {
+	result, _ := runEngineTest(t, `error("something went wrong")`)
+	if result.Type() != ObjError {
+		t.Errorf("error() type = %s, want error", result.Type())
+	}
+	if result.Inspect() != "error: something went wrong" {
+		t.Errorf("error() = %s", result.Inspect())
+	}
+}
+
+func TestErrorBuiltinNoArgs(t *testing.T) {
+	result, _ := runEngineTest(t, `error()`)
+	if result.Type() != ObjError {
+		t.Errorf("error() no args type = %s, want error", result.Type())
+	}
+}
+
+func TestTryWithErrorBuiltin(t *testing.T) {
+	err := runEngineExpectError(t, `
+fn mayFail(x) {
+    if x < 0 {
+        return error("negative")
+    }
+    return x * 2
+}
+let r = try(mayFail, -1)
+r`)
+	if err != nil {
+		return
+	}
+}
+
+func TestNegativeListIndex(t *testing.T) {
+	result, _ := runEngineTest(t, `[1, 2, 3][-1]`)
+	if result.Inspect() != "3" {
+		t.Errorf("list[-1] = %s, want 3", result.Inspect())
+	}
+}
+
+func TestNegativeStringIndex(t *testing.T) {
+	result, _ := runEngineTest(t, `"hello"[-1]`)
+	if result.Inspect() != "o" {
+		t.Errorf("string[-1] = %s, want o", result.Inspect())
+	}
+}
+
+func TestNegativeListIndexOutOfRange(t *testing.T) {
+	result, _ := runEngineTest(t, `[1, 2, 3][-10]`)
+	if _, ok := result.(NilObject); !ok {
+		t.Errorf("list[-10] should be nil, got %T", result)
+	}
+}
+
+func TestConstReassignment(t *testing.T) {
+	err := runEngineExpectError(t, `const X = 10
+X = 20`)
+	if err == nil {
+		t.Error("const reassignment should error")
+	}
+}
+
+func TestStrUpperNonString(t *testing.T) {
+	result, _ := runEngineTest(t, `str_upper(42)`)
+	if result.Inspect() != "" {
+		t.Errorf("str_upper(42) = %s, want empty string", result.Inspect())
+	}
+}
+
+func TestStrTrimNonString(t *testing.T) {
+	result, _ := runEngineTest(t, `str_trim(42)`)
+	if result.Inspect() != "" {
+		t.Errorf("str_trim(42) = %s, want empty string", result.Inspect())
+	}
+}
+
+func TestStrContainsNonString(t *testing.T) {
+	result, _ := runEngineTest(t, `str_contains(42, "4")`)
+	if result.Inspect() != "false" {
+		t.Errorf("str_contains(42, 4) = %s, want false", result.Inspect())
+	}
+}
+
+func TestStrReverseUnicode(t *testing.T) {
+	result, _ := runEngineTest(t, `str_reverse("你好")`)
+	if result.Inspect() != "好你" {
+		t.Errorf("str_reverse unicode = %s, want 好你", result.Inspect())
+	}
+}

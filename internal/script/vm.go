@@ -19,6 +19,7 @@ type VM struct {
 	stack       []Object
 	globals     map[string]Object
 	globalNames []string
+	constGlobals map[string]bool
 	frames      []CallFrame
 	outputs     []string
 	builtins    map[string]BuiltinFn
@@ -30,21 +31,20 @@ type VM struct {
 
 func NewVM(builtins map[string]BuiltinFn, unsafe bool) *VM {
 	vm := &VM{
-		stack:       []Object{},
-		globals:     make(map[string]Object),
-		globalNames: []string{},
-		frames:      []CallFrame{},
-		outputs:     []string{},
-		builtins:    builtins,
-		unsafe:      unsafe,
-		maxOps:      1000000,
+		stack:        []Object{},
+		globals:      make(map[string]Object),
+		globalNames:  []string{},
+		constGlobals: make(map[string]bool),
+		frames:       []CallFrame{},
+		outputs:      []string{},
+		builtins:     builtins,
+		unsafe:       unsafe,
+		maxOps:       1000000,
 	}
 	vm.printFn = func(s string) {
 		vm.outputs = append(vm.outputs, s)
 	}
-	if CallFn == nil {
-		CallFn = vm.callFunction
-	}
+	CallFn = vm.callFunction
 	return vm
 }
 
@@ -124,6 +124,11 @@ func (vm *VM) resolveVarInCurrentFrame(name string) (bool, int, bool) {
 	for i, p := range frame.Params {
 		if p == name {
 			return true, i, false
+		}
+	}
+	if frame.Locals != nil {
+		if idx, ok := frame.Locals[name]; ok {
+			return true, idx, false
 		}
 	}
 	return false, -1, false
@@ -318,6 +323,9 @@ func (vm *VM) execute() (Object, error) {
 			if inst.Arg < len(vm.globalNames) {
 				name = vm.globalNames[inst.Arg]
 			}
+			if vm.constGlobals[name] {
+				return nil, vm.fmtError("cannot assign to const '%s'", name)
+			}
 			val := vm.pop()
 			vm.globals[name] = val
 
@@ -336,6 +344,7 @@ func (vm *VM) execute() (Object, error) {
 			}
 			val := vm.pop()
 			vm.globals[name] = val
+			vm.constGlobals[name] = true
 
 		case OpGetFree:
 			fn := vm.currentFn()
@@ -375,6 +384,7 @@ func (vm *VM) execute() (Object, error) {
 				closedFn := &FnObject{
 					Name:         fn.Name,
 					Params:       fn.Params,
+					Locals:       fn.Locals,
 					Instructions: fn.Instructions,
 					Constants:    fn.Constants,
 					NumLocals:    fn.NumLocals,
@@ -530,10 +540,15 @@ func (vm *VM) callFunction(fn *FnObject, args ...Object) (result Object) {
 	}
 	vm.frames = append(vm.frames, newFrame)
 
-	result, _ = vm.execute()
+	var execErr error
+	result, execErr = vm.execute()
 
 	vm.stack = savedStack
 	vm.frames = savedFrames
+
+	if execErr != nil {
+		return ErrorObject{Message: execErr.Error()}
+	}
 
 	return result
 }
@@ -593,6 +608,9 @@ func (vm *VM) indexObject(obj, idx Object) Object {
 	case ListObject:
 		if i, ok := toInt(idx); ok {
 			elems := o.Elements
+			if i < 0 {
+				i = int64(len(elems)) + i
+			}
 			if i >= 0 && int(i) < len(elems) {
 				return elems[i]
 			}
@@ -607,6 +625,9 @@ func (vm *VM) indexObject(obj, idx Object) Object {
 	case StringObject:
 		if i, ok := toInt(idx); ok {
 			runes := []rune(string(o))
+			if i < 0 {
+				i = int64(len(runes)) + i
+			}
 			if i >= 0 && int(i) < len(runes) {
 				return StringObject(string(runes[i]))
 			}

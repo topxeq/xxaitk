@@ -65,6 +65,9 @@ const (
 	TokSemicolon
 
 	TokArrow
+
+	TokBitAnd
+	TokBitOr
 )
 
 type Token struct {

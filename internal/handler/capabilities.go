@@ -52,14 +52,14 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 		"features": map[string]bool{
 			"hex_codec":         true,
 			"file_source":       true,
-			"url_source":        true,
+			"url_source":       true,
 			"script_engine":     true,
 			"closure":           true,
 			"mutable_closures":  true,
 			"sandbox":           true,
 			"sql_drivers":       true,
 			"process_mgmt":      true,
-			"archive":           true,
+			"archive":          true,
 			"diff":              true,
 			"hash":              true,
 			"break_continue":    true,
@@ -67,11 +67,15 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 			"compound_assign":   true,
 			"string_iteration":  true,
 			"unicode_safe":      true,
+			"negative_indexing": true,
+			"const_enforcement": true,
+			"error_builtin":     true,
+			"local_capture":     true,
 		},
 	}
 }
 
-var Version = "0.5.0"
+var Version = "0.6.0"
 
 func KnownPrefixesList() []string {
 	return []string{

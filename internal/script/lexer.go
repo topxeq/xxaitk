@@ -203,14 +203,14 @@ func (l *Lexer) nextToken() Token {
 			l.advance()
 			return Token{Type: TokAnd, Literal: "&&", Line: line, Col: col}
 		}
-		return Token{Type: TokEOF, Line: line, Col: col}
+		return Token{Type: TokBitAnd, Literal: "&", Line: line, Col: col}
 	case '|':
 		l.advance()
 		if l.peek() == '|' {
 			l.advance()
 			return Token{Type: TokOr, Literal: "||", Line: line, Col: col}
 		}
-		return Token{Type: TokEOF, Line: line, Col: col}
+		return Token{Type: TokBitOr, Literal: "|", Line: line, Col: col}
 	case '(':
 		l.advance()
 		return Token{Type: TokLParen, Literal: "(", Line: line, Col: col}

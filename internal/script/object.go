@@ -92,6 +92,7 @@ func (m MapObject) Inspect() string {
 type FnObject struct {
 	Name         string
 	Params       []string
+	Locals       map[string]int
 	Instructions []Instruction
 	Constants    []Object
 	NumLocals    int
