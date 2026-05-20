@@ -21,16 +21,32 @@ Every operation returns consistent JSON. No more guessing output formats. No mor
 
 ## Install
 
+**One-click install (Linux / macOS / Windows):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/topxeq/xxaitk/main/install.sh | bash
+```
+
+> Custom install directory: `INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/topxeq/xxaitk/main/install.sh | bash`
+
+**Or with Go:**
+
 ```bash
 go install github.com/topxeq/xxaitk@latest
 ```
 
-Or build from source:
+**Or build from source:**
 
 ```bash
 git clone https://github.com/topxeq/xxaitk.git
 cd xxaitk
 go build -o aitk .
+```
+
+**Self-update:**
+
+```bash
+aitk update
 ```
 
 ## Usage
@@ -337,7 +353,7 @@ aitk SCRIPT_7b22736f75726365223a226f735f65786563285c22726d202d7266202f746d702f74
 
 ```
 $ aitk
-aitk v0.1.0 | type .help for help
+aitk v0.7.0 | type .help for help
 
 aitk> let x = 10
 aitk> print(math_abs(-5))
