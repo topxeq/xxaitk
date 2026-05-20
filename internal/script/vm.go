@@ -345,6 +345,14 @@ func (vm *VM) execute() (Object, error) {
 				vm.push(NilObject{})
 			}
 
+		case OpSetFree:
+			fn := vm.currentFn()
+			if fn != nil && inst.Arg < len(fn.Closure) {
+				fn.Closure[inst.Arg] = vm.pop()
+			} else {
+				vm.pop()
+			}
+
 		case OpClosure:
 			fnObj := vm.pop()
 			if fn, ok := fnObj.(*FnObject); ok {
@@ -494,9 +502,17 @@ func (vm *VM) frameBase() int {
 	return vm.frames[len(vm.frames)-1].BasePointer
 }
 
-func (vm *VM) callFunction(fn *FnObject, args ...Object) Object {
+func (vm *VM) callFunction(fn *FnObject, args ...Object) (result Object) {
 	savedStack := vm.stack
 	savedFrames := vm.frames
+
+	defer func() {
+		if r := recover(); r != nil {
+			vm.stack = savedStack
+			vm.frames = savedFrames
+			result = ErrorObject{Message: fmt.Sprintf("%v", r)}
+		}
+	}()
 
 	vm.stack = []Object{}
 	vm.frames = []CallFrame{}
@@ -514,7 +530,7 @@ func (vm *VM) callFunction(fn *FnObject, args ...Object) Object {
 	}
 	vm.frames = append(vm.frames, newFrame)
 
-	result, _ := vm.execute()
+	result, _ = vm.execute()
 
 	vm.stack = savedStack
 	vm.frames = savedFrames
@@ -590,9 +606,9 @@ func (vm *VM) indexObject(obj, idx Object) Object {
 		return NilObject{}
 	case StringObject:
 		if i, ok := toInt(idx); ok {
-			s := string(o)
-			if i >= 0 && int(i) < len(s) {
-				return StringObject(string(s[i]))
+			runes := []rune(string(o))
+			if i >= 0 && int(i) < len(runes) {
+				return StringObject(string(runes[i]))
 			}
 		}
 		return NilObject{}

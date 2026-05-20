@@ -56,10 +56,8 @@ const (
 	OpNilReturn
 
 	OpGetFree
+	OpSetFree
 	OpClosure
-
-	OpBreak
-	OpContinue
 )
 
 type Instruction struct {
@@ -154,12 +152,10 @@ func (op OpCode) String() string {
 		return "NIL_RETURN"
 	case OpGetFree:
 		return "GET_FREE"
+	case OpSetFree:
+		return "SET_FREE"
 	case OpClosure:
 		return "CLOSURE"
-	case OpBreak:
-		return "BREAK"
-	case OpContinue:
-		return "CONTINUE"
 	default:
 		return "UNKNOWN"
 	}

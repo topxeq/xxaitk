@@ -137,6 +137,34 @@ func (c *Compiler) defineGlobal(name string) int {
 	return idx
 }
 
+func (c *Compiler) compileLoopBody(node *Node) error {
+	if node.Type != NodeBlockStmt {
+		return c.compileNode(node)
+	}
+	c.pushScope()
+	for _, child := range node.Children {
+		if err := c.compileNode(child); err != nil {
+			return err
+		}
+		if c.isExpressionNode(child.Type) {
+			c.emit(OpPop, 0, child.Line)
+		}
+	}
+	c.popScope()
+	return nil
+}
+
+func (c *Compiler) isExpressionNode(t NodeType) bool {
+	switch t {
+	case NodeLetStmt, NodeConstStmt, NodeAssignStmt, NodeReturnStmt,
+		NodeIfStmt, NodeWhileStmt, NodeForStmt, NodeFnDecl,
+		NodeBreakStmt, NodeContinueStmt, NodeBreakpointStmt:
+		return false
+	default:
+		return true
+	}
+}
+
 func (c *Compiler) compileNode(node *Node) error {
 	if node == nil {
 		return nil
@@ -164,15 +192,74 @@ func (c *Compiler) compileNode(node *Node) error {
 		c.emit(OpDefineConst, idx, node.Line)
 
 	case NodeAssignStmt:
-		if err := c.compileNode(node.Children[1]); err != nil {
-			return err
-		}
 		target := node.Children[0]
+		isCompound := node.Token.Type == TokPlusAssign || node.Token.Type == TokMinusAssign ||
+			node.Token.Type == TokStarAssign || node.Token.Type == TokSlashAssign
+
+		if isCompound {
+			switch target.Type {
+			case NodeIdentExpr:
+				isLocal, idx, _ := c.resolveVar(target.Value)
+				if isLocal {
+					c.emit(OpGetLocal, idx, target.Line)
+				} else if freeIdx, ok := c.freeVarSet[target.Value]; ok {
+					c.emit(OpGetFree, freeIdx, target.Line)
+				} else {
+					if _, ok := c.globals[target.Value]; !ok {
+						c.defineGlobal(target.Value)
+					}
+					c.emit(OpGetGlobal, c.globals[target.Value], target.Line)
+				}
+			case NodeIndexExpr:
+				if err := c.compileNode(target.Children[0]); err != nil {
+					return err
+				}
+				if err := c.compileNode(target.Children[1]); err != nil {
+					return err
+				}
+				c.emit(OpIndex, 0, target.Line)
+			case NodeDotExpr:
+				if err := c.compileNode(target.Children[0]); err != nil {
+					return err
+				}
+				idx := c.addConstant(StringObject(target.Value))
+				c.emit(OpConstant, idx, target.Line)
+				c.emit(OpIndex, 0, target.Line)
+			default:
+				return fmt.Errorf("invalid compound assignment target at line %d", target.Line)
+			}
+
+			if err := c.compileNode(node.Children[1]); err != nil {
+				return err
+			}
+
+			switch node.Token.Type {
+			case TokPlusAssign:
+				c.emit(OpAdd, 0, node.Line)
+			case TokMinusAssign:
+				c.emit(OpSub, 0, node.Line)
+			case TokStarAssign:
+				c.emit(OpMul, 0, node.Line)
+			case TokSlashAssign:
+				c.emit(OpDiv, 0, node.Line)
+			}
+		} else {
+			if err := c.compileNode(node.Children[1]); err != nil {
+				return err
+			}
+		}
+
 		switch target.Type {
 		case NodeIdentExpr:
 			isLocal, idx, _ := c.resolveVar(target.Value)
 			if isLocal {
 				c.emit(OpSetLocal, idx, target.Line)
+			} else if isCompound {
+				if freeIdx, ok := c.freeVarSet[target.Value]; ok {
+					c.emit(OpSetFree, freeIdx, target.Line)
+				} else {
+					c.emit(OpSetGlobal, c.globals[target.Value], target.Line)
+				}
 			} else {
 				if _, ok := c.globals[target.Value]; !ok {
 					idx = c.defineGlobal(target.Value)
@@ -196,10 +283,6 @@ func (c *Compiler) compileNode(node *Node) error {
 			c.emit(OpIndex, 0, target.Line)
 		default:
 			return fmt.Errorf("invalid assignment target at line %d", target.Line)
-		}
-
-		if node.Token.Type == TokPlusAssign || node.Token.Type == TokMinusAssign ||
-			node.Token.Type == TokStarAssign || node.Token.Type == TokSlashAssign {
 		}
 
 	case NodeReturnStmt:
@@ -494,7 +577,7 @@ func (c *Compiler) compileWhile(node *Node) error {
 
 	jumpIfFalse := c.emitJump(OpJumpIfFalse, node.Line)
 
-	if err := c.compileNode(node.Children[1]); err != nil {
+	if err := c.compileLoopBody(node.Children[1]); err != nil {
 		return err
 	}
 
@@ -540,8 +623,8 @@ func (c *Compiler) compileFor(node *Node) error {
 	c.emit(OpSetLocal, valIdx, node.Line)
 
 	c.emit(OpGetLocal, counterIdx, node.Line)
-	listLenIdx := c.defineGlobal("list_len")
-	c.emit(OpGetGlobal, listLenIdx, node.Line)
+	iterLenIdx := c.defineGlobal("__iter_len")
+	c.emit(OpGetGlobal, iterLenIdx, node.Line)
 	c.emit(OpGetLocal, iterIdx, node.Line)
 	c.emit(OpCall, 1, node.Line)
 	c.emit(OpLt, 0, node.Line)
@@ -551,7 +634,7 @@ func (c *Compiler) compileFor(node *Node) error {
 	ctx := loopContext{loopStart: loopStart}
 	c.loopStack = append(c.loopStack, ctx)
 
-	if err := c.compileNode(node.Children[1]); err != nil {
+	if err := c.compileLoopBody(node.Children[1]); err != nil {
 		return err
 	}
 

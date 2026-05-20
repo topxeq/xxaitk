@@ -50,24 +50,28 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 		"prefixes": KnownPrefixesList(),
 		"builtins": BuiltinCategories(),
 		"features": map[string]bool{
-			"hex_codec":        true,
-			"file_source":      true,
-			"url_source":       true,
-			"script_engine":    true,
-			"closure":          true,
-			"sandbox":          true,
-			"sql_drivers":      true,
-			"process_mgmt":     true,
-			"archive":          true,
-			"diff":             true,
-			"hash":             true,
-			"break_continue":   true,
+			"hex_codec":         true,
+			"file_source":       true,
+			"url_source":        true,
+			"script_engine":     true,
+			"closure":           true,
+			"mutable_closures":  true,
+			"sandbox":           true,
+			"sql_drivers":       true,
+			"process_mgmt":      true,
+			"archive":           true,
+			"diff":              true,
+			"hash":              true,
+			"break_continue":    true,
 			"closure_iterators": true,
+			"compound_assign":   true,
+			"string_iteration":  true,
+			"unicode_safe":      true,
 		},
 	}
 }
 
-var Version = "0.4.0"
+var Version = "0.5.0"
 
 func KnownPrefixesList() []string {
 	return []string{

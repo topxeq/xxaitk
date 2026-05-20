@@ -879,3 +879,173 @@ result`)
 		t.Errorf("list_find with closure = %s", result.Inspect())
 	}
 }
+
+func TestCompoundAddAssign(t *testing.T) {
+	result, _ := runEngineTest(t, `let x = 10
+x += 5
+x`)
+	if result.Inspect() != "15" {
+		t.Errorf("x += 5 = %s, want 15", result.Inspect())
+	}
+}
+
+func TestCompoundSubAssign(t *testing.T) {
+	result, _ := runEngineTest(t, `let x = 10
+x -= 3
+x`)
+	if result.Inspect() != "7" {
+		t.Errorf("x -= 3 = %s, want 7", result.Inspect())
+	}
+}
+
+func TestCompoundMulAssign(t *testing.T) {
+	result, _ := runEngineTest(t, `let x = 10
+x *= 3
+x`)
+	if result.Inspect() != "30" {
+		t.Errorf("x *= 3 = %s, want 30", result.Inspect())
+	}
+}
+
+func TestCompoundDivAssign(t *testing.T) {
+	result, _ := runEngineTest(t, `let x = 10
+x /= 2
+x`)
+	if result.Inspect() != "5" {
+		t.Errorf("x /= 2 = %s, want 5", result.Inspect())
+	}
+}
+
+func TestCompoundAssignInLoop(t *testing.T) {
+	_, outputs := runEngineTest(t, `
+let sum = 0
+for x in [1, 2, 3, 4, 5] {
+    sum += x
+}
+print(str_from_int(sum))
+`)
+	if len(outputs) < 1 || outputs[len(outputs)-1] != "15" {
+		t.Errorf("sum += in for = %v, want 15", outputs)
+	}
+}
+
+func TestForInString(t *testing.T) {
+	_, outputs := runEngineTest(t, `
+let result = ""
+for ch in "abc" {
+    result = str_concat(result, ch)
+}
+print(result)
+`)
+	if len(outputs) < 1 || outputs[len(outputs)-1] != "abc" {
+		t.Errorf("for in string = %v, want abc", outputs)
+	}
+}
+
+func TestForInUnicodeString(t *testing.T) {
+	_, outputs := runEngineTest(t, `
+let result = ""
+for ch in "你好" {
+    result = str_concat(result, ch)
+}
+print(result)
+`)
+	if len(outputs) < 1 || outputs[len(outputs)-1] != "你好" {
+		t.Errorf("for in unicode = %v, want 你好", outputs)
+	}
+}
+
+func TestMutableClosure(t *testing.T) {
+	result, _ := runEngineTest(t, `
+let count = 0
+fn increment() {
+    count += 1
+    return count
+}
+let a = increment()
+let b = increment()
+let c = increment()
+str_concat(str_from_int(a), str_concat(str_from_int(b), str_from_int(c)))
+`)
+	if result.Inspect() != "123" {
+		t.Errorf("mutable closure = %s, want 123", result.Inspect())
+	}
+}
+
+func TestStrLen(t *testing.T) {
+	result, _ := runEngineTest(t, `str_len("hello")`)
+	if result.Inspect() != "5" {
+		t.Errorf("str_len(hello) = %s, want 5", result.Inspect())
+	}
+}
+
+func TestStrLenUnicode(t *testing.T) {
+	result, _ := runEngineTest(t, `str_len("你好")`)
+	if result.Inspect() != "2" {
+		t.Errorf("str_len(你好) = %s, want 2", result.Inspect())
+	}
+}
+
+func TestStrLenNonString(t *testing.T) {
+	result, _ := runEngineTest(t, `str_len(42)`)
+	if result.Inspect() != "0" {
+		t.Errorf("str_len(42) = %s, want 0", result.Inspect())
+	}
+}
+
+func TestStrSubUnicode(t *testing.T) {
+	result, _ := runEngineTest(t, `str_sub("你好世界", 1, 3)`)
+	if result.Inspect() != "好世" {
+		t.Errorf("str_sub unicode = %s, want 好世", result.Inspect())
+	}
+}
+
+func TestTryWithScriptFn(t *testing.T) {
+	result, _ := runEngineTest(t, `
+fn safeDiv(a, b) {
+    if b == 0 {
+        return error("division by zero")
+    }
+    return a / b
+}
+let r = try(safeDiv, 10, 0)
+r`)
+	if result.Type() != ObjList {
+		t.Errorf("try result type = %s, want list", result.Type())
+	}
+}
+
+func TestTryWithScriptFnSuccess(t *testing.T) {
+	result, _ := runEngineTest(t, `
+fn safeDiv(a, b) {
+    if b == 0 {
+        return error("division by zero")
+    }
+    return a / b
+}
+let r = try(safeDiv, 10, 2)
+r`)
+	l := result.(ListObject)
+	if len(l.Elements) < 1 {
+		t.Fatal("expected list with 2 elements")
+	}
+	if l.Elements[0].Inspect() != "true" {
+		t.Errorf("try success = %s, want true", l.Elements[0].Inspect())
+	}
+}
+
+func TestStackLeakInLoop(t *testing.T) {
+	_, outputs := runEngineTest(t, `
+let sum = 0
+let i = 0
+while i < 100 {
+    print(str_from_int(i))
+    i += 1
+}
+print("done")
+`)
+	lastOutput := outputs[len(outputs)-1]
+	if lastOutput != "done" {
+		t.Errorf("stack leak test: last output = %q, want done", lastOutput)
+	}
+}

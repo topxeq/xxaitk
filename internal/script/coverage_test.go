@@ -48,8 +48,7 @@ func TestOpCodeStringAll(t *testing.T) {
 		OpCall, OpReturn, OpPop,
 		OpBuildList, OpBuildMap,
 		OpBreakpoint, OpNilReturn,
-		OpGetFree, OpClosure,
-		OpBreak, OpContinue,
+		OpGetFree, OpSetFree, OpClosure,
 	}
 	for _, op := range codes {
 		s := op.String()
@@ -705,4 +704,60 @@ func strContains(s, sub string) bool {
 		}
 	}
 	return false
+}
+
+func TestOpSetFreePopsValue(t *testing.T) {
+	vm := NewVM(GetBuiltins(true), true)
+	fn := &FnObject{
+		Name:   "test",
+		Params: []string{},
+		Instructions: []Instruction{
+			{OpCode: OpNil, Arg: 0, Line: 1},
+			{OpCode: OpSetFree, Arg: 0, Line: 1},
+			{OpCode: OpNilReturn, Arg: 0, Line: 1},
+		},
+		NumLocals: 1,
+		Closure:   []Object{IntObject(42)},
+	}
+	vm.callFunction(fn)
+	if _, ok := fn.Closure[0].(NilObject); !ok {
+		t.Errorf("OpSetFree should set Closure[0] to NilObject, got %T", fn.Closure[0])
+	}
+}
+
+func TestIterLenBuiltin(t *testing.T) {
+	result, _ := runEngineTest(t, `__iter_len([1, 2, 3])`)
+	if result.Inspect() != "3" {
+		t.Errorf("__iter_len([1,2,3]) = %s, want 3", result.Inspect())
+	}
+}
+
+func TestIterLenString(t *testing.T) {
+	result, _ := runEngineTest(t, `__iter_len("hello")`)
+	if result.Inspect() != "5" {
+		t.Errorf("__iter_len(hello) = %s, want 5", result.Inspect())
+	}
+}
+
+func TestIterLenOther(t *testing.T) {
+	result, _ := runEngineTest(t, `__iter_len(42)`)
+	if result.Inspect() != "0" {
+		t.Errorf("__iter_len(42) = %s, want 0", result.Inspect())
+	}
+}
+
+func TestStringIndexUnicode(t *testing.T) {
+	vm := NewVM(GetBuiltins(true), true)
+	result := vm.indexObject(StringObject("你好"), IntObject(1))
+	if result.Inspect() != "好" {
+		t.Errorf("indexObject unicode = %s, want 好", result.Inspect())
+	}
+}
+
+func TestStringIndexOutOfRange(t *testing.T) {
+	vm := NewVM(GetBuiltins(true), true)
+	result := vm.indexObject(StringObject("hi"), IntObject(5))
+	if _, ok := result.(NilObject); !ok {
+		t.Errorf("out of range should return NilObject, got %T", result)
+	}
 }

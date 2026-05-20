@@ -73,6 +73,7 @@ func init() {
 		"log_info", "log_warn", "log_error", "log_debug",
 		"time_now", "time_now_unix", "time_format", "time_parse", "time_sleep", "time_duration",
 		"try", "catch", "is_error",
+		"__iter_len",
 	}
 	for _, name := range safe {
 		safeBuiltins[name] = true
@@ -101,12 +102,31 @@ func registerStrBuiltins() {
 		}
 		return NilObject{}
 	})
+
+	registerBuiltin("__iter_len", func(args ...Object) Object {
+		if len(args) < 1 {
+			return IntObject(0)
+		}
+		switch v := args[0].(type) {
+		case ListObject:
+			return IntObject(len(v.Elements))
+		case StringObject:
+			return IntObject(len([]rune(string(v))))
+		default:
+			return IntObject(0)
+		}
+	})
+
 	registerBuiltin("str_len", func(args ...Object) Object {
 		if len(args) < 1 {
 			return IntObject(0)
 		}
-		return IntObject(len(args[0].Inspect()))
+		if s, ok := args[0].(StringObject); ok {
+			return IntObject(len([]rune(string(s))))
+		}
+		return IntObject(0)
 	})
+
 	registerBuiltin("str_concat", func(args ...Object) Object {
 		parts := make([]string, len(args))
 		for i, a := range args {
@@ -154,23 +174,33 @@ func registerStrBuiltins() {
 		if len(args) < 1 {
 			return StringObject("")
 		}
-		s := args[0].Inspect()
+		s, ok := args[0].(StringObject)
+		if !ok {
+			return StringObject("")
+		}
+		runes := []rune(string(s))
 		start := 0
 		if len(args) >= 2 {
-			if i, ok := toInt(args[1]); ok && int(i) < len(s) {
+			if i, ok := toInt(args[1]); ok && int(i) < len(runes) {
 				start = int(i)
 			}
 		}
-		end := len(s)
+		end := len(runes)
 		if len(args) >= 3 {
-			if i, ok := toInt(args[2]); ok && int(i) <= len(s) {
+			if i, ok := toInt(args[2]); ok && int(i) <= len(runes) {
 				end = int(i)
 			}
 		}
 		if start > end {
 			start = end
 		}
-		return StringObject(s[start:end])
+		if start < 0 {
+			start = 0
+		}
+		if end > len(runes) {
+			end = len(runes)
+		}
+		return StringObject(string(runes[start:end]))
 	})
 	registerBuiltin("str_trim", func(args ...Object) Object {
 		if len(args) < 1 {
@@ -1418,23 +1448,36 @@ func registerErrorHandlingBuiltins() {
 		if len(args) < 1 {
 			return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "try requires a function argument"}}}
 		}
-		fn, ok := args[0].(BuiltinFn)
-		if !ok {
-			if _, ok2 := args[0].(*FnObject); ok2 {
-				return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "try with script fn not yet supported, use try with builtin fn"}}}
-			}
-			return ListObject{Elements: []Object{BoolObject(false), ErrorObject{Message: "argument is not callable"}}}
-		}
 		callArgs := []Object{}
 		if len(args) > 1 {
 			callArgs = args[1:]
 		}
-		defer func() {
-			recover()
+		var result Object = NilObject{}
+		caught := false
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					result = ErrorObject{Message: fmt.Sprintf("%v", r)}
+					caught = true
+				}
+			}()
+			switch fn := args[0].(type) {
+			case BuiltinFn:
+				result = fn.Fn(callArgs...)
+			case *FnObject:
+				result = CallFn(fn, callArgs...)
+			default:
+				result = ErrorObject{Message: "argument is not callable"}
+				caught = true
+			}
 		}()
-		result := fn.Fn(callArgs...)
-		if err, ok := result.(ErrorObject); ok {
-			return ListObject{Elements: []Object{BoolObject(false), err}}
+		if !caught {
+			if err, ok := result.(ErrorObject); ok {
+				return ListObject{Elements: []Object{BoolObject(false), err}}
+			}
+		}
+		if caught {
+			return ListObject{Elements: []Object{BoolObject(false), result}}
 		}
 		return ListObject{Elements: []Object{BoolObject(true), result}}
 	})
