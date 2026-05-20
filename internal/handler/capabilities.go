@@ -61,11 +61,13 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 			"archive":          true,
 			"diff":             true,
 			"hash":             true,
+			"break_continue":   true,
+			"closure_iterators": true,
 		},
 	}
 }
 
-var Version = "0.3.0"
+var Version = "0.4.0"
 
 func KnownPrefixesList() []string {
 	return []string{

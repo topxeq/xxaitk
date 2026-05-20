@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+type loopContext struct {
+	loopStart    int
+	breakJumps   []int
+	continueJumps []int
+}
+
 type Compiler struct {
 	instructions []Instruction
 	constants    []Object
@@ -17,6 +23,7 @@ type Compiler struct {
 	freeVars     []string
 	freeVarSet   map[string]int
 	parentLocals []map[string]int
+	loopStack    []loopContext
 }
 
 func NewCompiler() *Compiler {
@@ -227,10 +234,18 @@ func (c *Compiler) compileNode(node *Node) error {
 		c.popScope()
 
 	case NodeBreakStmt:
-		c.emit(OpJump, 0, node.Line)
+		if len(c.loopStack) == 0 {
+			return fmt.Errorf("break outside loop at line %d", node.Line)
+		}
+		jumpIdx := c.emitJump(OpJump, node.Line)
+		c.loopStack[len(c.loopStack)-1].breakJumps = append(c.loopStack[len(c.loopStack)-1].breakJumps, jumpIdx)
 
 	case NodeContinueStmt:
-		c.emit(OpJump, 0, node.Line)
+		if len(c.loopStack) == 0 {
+			return fmt.Errorf("continue outside loop at line %d", node.Line)
+		}
+		jumpIdx := c.emitJump(OpJump, node.Line)
+		c.loopStack[len(c.loopStack)-1].continueJumps = append(c.loopStack[len(c.loopStack)-1].continueJumps, jumpIdx)
 
 	case NodeBreakpointStmt:
 		c.emit(OpBreakpoint, 0, node.Line)
@@ -470,6 +485,9 @@ func (c *Compiler) compileIf(node *Node) error {
 func (c *Compiler) compileWhile(node *Node) error {
 	loopStart := len(c.instructions)
 
+	ctx := loopContext{loopStart: loopStart}
+	c.loopStack = append(c.loopStack, ctx)
+
 	if err := c.compileNode(node.Children[0]); err != nil {
 		return err
 	}
@@ -482,6 +500,17 @@ func (c *Compiler) compileWhile(node *Node) error {
 
 	c.emit(OpLoop, loopStart, node.Line)
 	c.patchJump(jumpIfFalse)
+
+	loopEnd := len(c.instructions)
+	curCtx := c.loopStack[len(c.loopStack)-1]
+	c.loopStack = c.loopStack[:len(c.loopStack)-1]
+
+	for _, j := range curCtx.breakJumps {
+		c.instructions[j].Arg = loopEnd
+	}
+	for _, j := range curCtx.continueJumps {
+		c.instructions[j].Arg = loopStart
+	}
 
 	return nil
 }
@@ -519,9 +548,14 @@ func (c *Compiler) compileFor(node *Node) error {
 
 	jumpIfFalse := c.emitJump(OpJumpIfFalse, node.Line)
 
+	ctx := loopContext{loopStart: loopStart}
+	c.loopStack = append(c.loopStack, ctx)
+
 	if err := c.compileNode(node.Children[1]); err != nil {
 		return err
 	}
+
+	incrementStart := len(c.instructions)
 
 	c.emit(OpGetLocal, counterIdx, node.Line)
 	oneIdx := c.addConstant(IntObject(1))
@@ -531,6 +565,17 @@ func (c *Compiler) compileFor(node *Node) error {
 
 	c.emit(OpLoop, loopStart, node.Line)
 	c.patchJump(jumpIfFalse)
+
+	loopEnd := len(c.instructions)
+	curCtx := c.loopStack[len(c.loopStack)-1]
+	c.loopStack = c.loopStack[:len(c.loopStack)-1]
+
+	for _, j := range curCtx.breakJumps {
+		c.instructions[j].Arg = loopEnd
+	}
+	for _, j := range curCtx.continueJumps {
+		c.instructions[j].Arg = incrementStart
+	}
 
 	return nil
 }

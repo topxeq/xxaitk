@@ -567,13 +567,20 @@ func registerListBuiltins() {
 			return ListObject{}
 		}
 		if list, ok := args[0].(ListObject); ok {
-			if fn, ok := args[1].(BuiltinFn); ok {
-				result := make([]Object, len(list.Elements))
+			result := make([]Object, len(list.Elements))
+			switch fn := args[1].(type) {
+			case BuiltinFn:
 				for i, e := range list.Elements {
 					result[i] = fn.Fn(e)
 				}
-				return ListObject{Elements: result}
+			case *FnObject:
+				for i, e := range list.Elements {
+					result[i] = CallFn(fn, e)
+				}
+			default:
+				return ListObject{}
 			}
+			return ListObject{Elements: result}
 		}
 		return ListObject{}
 	})
@@ -582,15 +589,24 @@ func registerListBuiltins() {
 			return ListObject{}
 		}
 		if list, ok := args[0].(ListObject); ok {
-			if fn, ok := args[1].(BuiltinFn); ok {
-				var result []Object
+			var result []Object
+			switch fn := args[1].(type) {
+			case BuiltinFn:
 				for _, e := range list.Elements {
 					if IsTruthy(fn.Fn(e)) {
 						result = append(result, e)
 					}
 				}
-				return ListObject{Elements: result}
+			case *FnObject:
+				for _, e := range list.Elements {
+					if IsTruthy(CallFn(fn, e)) {
+						result = append(result, e)
+					}
+				}
+			default:
+				return ListObject{}
 			}
+			return ListObject{Elements: result}
 		}
 		return ListObject{}
 	})
@@ -678,13 +694,20 @@ func registerListBuiltins() {
 			return NilObject{}
 		}
 		if list, ok := args[0].(ListObject); ok {
-			if fn, ok := args[1].(BuiltinFn); ok {
-				acc := args[2]
+			acc := args[2]
+			switch fn := args[1].(type) {
+			case BuiltinFn:
 				for _, e := range list.Elements {
 					acc = fn.Fn(acc, e)
 				}
-				return acc
+			case *FnObject:
+				for _, e := range list.Elements {
+					acc = CallFn(fn, acc, e)
+				}
+			default:
+				return NilObject{}
 			}
+			return acc
 		}
 		return NilObject{}
 	})
@@ -693,9 +716,16 @@ func registerListBuiltins() {
 			return NilObject{}
 		}
 		if list, ok := args[0].(ListObject); ok {
-			if fn, ok := args[1].(BuiltinFn); ok {
+			switch fn := args[1].(type) {
+			case BuiltinFn:
 				for _, e := range list.Elements {
 					if IsTruthy(fn.Fn(e)) {
+						return e
+					}
+				}
+			case *FnObject:
+				for _, e := range list.Elements {
+					if IsTruthy(CallFn(fn, e)) {
 						return e
 					}
 				}

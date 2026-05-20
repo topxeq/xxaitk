@@ -11,6 +11,10 @@ type CallFrame struct {
 	BasePointer int
 }
 
+type CallFnType func(fn *FnObject, args ...Object) Object
+
+var CallFn CallFnType
+
 type VM struct {
 	stack       []Object
 	globals     map[string]Object
@@ -37,6 +41,9 @@ func NewVM(builtins map[string]BuiltinFn, unsafe bool) *VM {
 	}
 	vm.printFn = func(s string) {
 		vm.outputs = append(vm.outputs, s)
+	}
+	if CallFn == nil {
+		CallFn = vm.callFunction
 	}
 	return vm
 }
@@ -487,6 +494,34 @@ func (vm *VM) frameBase() int {
 	return vm.frames[len(vm.frames)-1].BasePointer
 }
 
+func (vm *VM) callFunction(fn *FnObject, args ...Object) Object {
+	savedStack := vm.stack
+	savedFrames := vm.frames
+
+	vm.stack = []Object{}
+	vm.frames = []CallFrame{}
+
+	newFrame := CallFrame{
+		Fn:          fn,
+		IP:          0,
+		BasePointer: 0,
+	}
+	for _, arg := range args {
+		vm.push(arg)
+	}
+	for len(vm.stack) < newFrame.BasePointer+fn.NumLocals {
+		vm.push(NilObject{})
+	}
+	vm.frames = append(vm.frames, newFrame)
+
+	result, _ := vm.execute()
+
+	vm.stack = savedStack
+	vm.frames = savedFrames
+
+	return result
+}
+
 func (vm *VM) applyArithmetic(a, b Object, op string) Object {
 	if as, aok := a.(StringObject); aok {
 		if bs, bok := b.(StringObject); bok && op == "+" {
@@ -494,10 +529,12 @@ func (vm *VM) applyArithmetic(a, b Object, op string) Object {
 		}
 	}
 
-	ai, aIsInt := toInt(a)
-	bi, bIsInt := toInt(b)
+	_, aIsInt := a.(IntObject)
+	_, bIsInt := b.(IntObject)
 
 	if aIsInt && bIsInt {
+		ai := int64(a.(IntObject))
+		bi := int64(b.(IntObject))
 		switch op {
 		case "+":
 			return IntObject(ai + bi)

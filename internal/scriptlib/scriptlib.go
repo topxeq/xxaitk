@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const RegistryURL = "https://raw.githubusercontent.com/topxeq/xxaitk-scripts/main/registry.json"
+var RegistryURL = "https://raw.githubusercontent.com/topxeq/xxaitk-scripts/main/registry.json"
 
 type Library struct {
 	Name        string `json:"name"`

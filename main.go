@@ -12,13 +12,13 @@ import (
 	"github.com/topxeq/xxaitk/internal/scriptlib"
 )
 
-var version = "0.3.0"
+var version = "0.4.0"
 
 func main() {
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		r := repl.New(false)
+		r := repl.NewWithVersion(false, version)
 		r.Run()
 		return
 	}
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	if len(remaining) == 0 {
-		r := repl.New(debug)
+		r := repl.NewWithVersion(debug, version)
 		r.Run()
 		return
 	}

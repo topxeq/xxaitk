@@ -11,19 +11,22 @@ import (
 	"github.com/topxeq/xxaitk/internal/script"
 )
 
-const version = "0.1.0"
-
 type REPL struct {
 	debug   bool
 	history []string
+	version string
 }
 
 func New(debug bool) *REPL {
-	return &REPL{debug: debug}
+	return &REPL{debug: debug, version: "0.4.0"}
+}
+
+func NewWithVersion(debug bool, ver string) *REPL {
+	return &REPL{debug: debug, version: ver}
 }
 
 func (r *REPL) Run() {
-	fmt.Printf("aitk v%s | type .help for help\n\n", version)
+	fmt.Printf("aitk v%s | type .help for help\n\n", r.version)
 
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
