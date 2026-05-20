@@ -69,13 +69,13 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 			"unicode_safe":      true,
 			"negative_indexing": true,
 			"const_enforcement": true,
-			"error_builtin":     true,
+			"auto_update":      true,
 			"local_capture":     true,
 		},
 	}
 }
 
-var Version = "0.6.0"
+var Version = "dev"
 
 func KnownPrefixesList() []string {
 	return []string{

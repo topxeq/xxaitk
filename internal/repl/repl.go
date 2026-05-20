@@ -18,7 +18,7 @@ type REPL struct {
 }
 
 func New(debug bool) *REPL {
-	return &REPL{debug: debug, version: "0.6.0"}
+	return &REPL{debug: debug, version: "0.7.0"}
 }
 
 func NewWithVersion(debug bool, ver string) *REPL {

@@ -10,11 +10,14 @@ import (
 	"github.com/topxeq/xxaitk/internal/handler"
 	"github.com/topxeq/xxaitk/internal/repl"
 	"github.com/topxeq/xxaitk/internal/scriptlib"
+	"github.com/topxeq/xxaitk/internal/updater"
 )
 
-var version = "0.6.0"
+var version = "0.7.0"
 
 func main() {
+	updater.CleanupOldBinary()
+
 	args := os.Args[1:]
 
 	if len(args) == 0 {
@@ -25,6 +28,16 @@ func main() {
 
 	if args[0] == "lib" {
 		handleLibCommand(args[1:])
+		return
+	}
+
+	if args[0] == "update" {
+		handler.Version = version
+		u := updater.New(version)
+		if err := u.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
+			os.Exit(1)
+		}
 		return
 	}
 
@@ -55,6 +68,7 @@ func main() {
 	}
 
 	registerHandlers()
+	handler.Version = version
 
 	d := dispatcher.New(debug)
 	d.Dispatch(remaining[0])
@@ -176,6 +190,7 @@ func printHelp() {
 	fmt.Println("  aitk                              Enter REPL mode")
 	fmt.Println("  aitk <PREFIX>[_SOURCE]_<HEXDATA>  Execute command")
 	fmt.Println("  aitk lib <command>               Manage script libraries")
+	fmt.Println("  aitk update                      Update aitk to latest version")
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  --version, -v   Print version")

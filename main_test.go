@@ -24,8 +24,8 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("--version failed: %v", err)
 	}
 	s := string(out)
-	if !containsStr(s, "v0.6.0") {
-		t.Errorf("version output = %q, want v0.6.0", s)
+	if !containsStr(s, "v0.7.0") {
+		t.Errorf("version output = %q, want v0.7.0", s)
 	}
 }
 
@@ -36,8 +36,8 @@ func TestVersionShort(t *testing.T) {
 		t.Fatalf("-v failed: %v", err)
 	}
 	s := string(out)
-	if !containsStr(s, "v0.6.0") {
-		t.Errorf("version output = %q, want v0.6.0", s)
+	if !containsStr(s, "v0.7.0") {
+		t.Errorf("version output = %q, want v0.7.0", s)
 	}
 }
 
