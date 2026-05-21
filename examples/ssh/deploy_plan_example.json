@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "name": "stop old",
+      "type": "cmd",
+      "cmd": "pkill app || true",
+      "timeout": "10s"
+    },
+    {
+      "name": "upload",
+      "type": "upload_atomic",
+      "local_path": "./app",
+      "remote_path": "/opt/app/app",
+      "temp_path": "/opt/app/app.tmp"
+    },
+    {
+      "name": "chmod",
+      "type": "chmod",
+      "remote_path": "/opt/app/app",
+      "mode": "0755"
+    },
+    {
+      "name": "start",
+      "type": "cmd",
+      "cmd": "cd /opt/app && setsid -f ./app > logs/app.log 2>&1",
+      "timeout": "15s"
+    }
+  ]
+}

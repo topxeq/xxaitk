@@ -1,111 +1,62 @@
 # aitk SSH Examples
 
-This directory contains working examples for the `SSH` prefix in aitk, demonstrating full [sshrun](https://github.com/topxeq/sshrun) feature parity.
+可直接运行的 `aitk SSH_` 命令示例。每条命令前有 `# 编码前:` 注释说明原始 JSON。
 
-## Setup
+## 使用方法
 
-1. Edit `common.sh` and set your server details:
+1. 将命令中的 `YOUR_HOST` / `YOUR_PASSWORD` 替换为实际值
+2. 直接粘贴到终端运行
 
-```bash
-SSH_HOST="your.server.ip"
-SSH_PORT="22"
-SSH_USER="root"
-SSH_PASS="your_password"
-# Or use key auth:
-# SSH_KEY="~/.ssh/id_rsa"
-```
-
-2. Make sure `aitk` is in your PATH:
+快速生成命令的方法：
 
 ```bash
-export AITK=/path/to/aitk
-# or
-# ln -s /path/to/aitk /usr/local/bin/aitk
+# 将 JSON 编码为 aitk 命令
+echo -n '{"host":"1.2.3.4","port":22,"user":"root","password":"secret","action":"cmd","cmd":"hostname"}' | xxd -p | tr -d '\n' | xargs -I{} echo "aitk SSH_{}"
 ```
 
-3. Run any example:
+## 示例列表
 
-```bash
-bash 01_cmd_basic.sh
-```
+| 文件 | 说明 |
+|------|------|
+| `01_cmd.txt` | 执行远程命令 |
+| `02_cmd_timeout.txt` | 命令超时控制 |
+| `03_cmd_file.txt` | 从文件执行多条命令 |
+| `04_upload.txt` | 上传文件 |
+| `05_download.txt` | 下载文件 |
+| `06_upload_atomic.txt` | 原子上传（临时文件+重命名） |
+| `07_mkdir.txt` | 创建远程目录 |
+| `08_remove.txt` | 删除远程文件/目录 |
+| `09_chmod.txt` | 修改文件权限 |
+| `10_move.txt` | 移动/重命名远程文件 |
+| `11_deploy.txt` | 多步骤部署计划 |
+| `12_sync_push.txt` | 同步推送 (local → remote) |
+| `13_sync_pull.txt` | 同步拉取 (remote → local) |
+| `14_sync_bidirectional.txt` | 双向同步 + 冲突策略 |
+| `15_sync_single_file.txt` | 单文件同步 |
+| `16_key_auth.txt` | 私钥认证 |
+| `17_errors.txt` | 错误场景示例 |
+| `deploy_plan_example.json` | 部署计划 JSON 示例文件 |
 
-## Examples
+## SSH Actions 参考
 
-| # | File | Description |
-|---|------|-------------|
-| 01 | `01_cmd_basic.sh` | Execute remote commands (hostname, uname, df) |
-| 02 | `02_cmd_timeout.sh` | Commands with timeout, timeout exceeded |
-| 03 | `03_cmd_file.sh` | Execute multiple commands from a file |
-| 04 | `04_upload.sh` | Upload file, upload with custom filename |
-| 05 | `05_download.sh` | Download file, download with custom filename |
-| 06 | `06_upload_atomic.sh` | Atomic upload (temp file + rename) |
-| 07 | `07_mkdir_chmod_move_remove.sh` | Directory/file operations |
-| 08 | `08_deploy.sh` | Multi-step deployment plan, continue_on_error |
-| 09 | `09_sync_push.sh` | Sync push with include/exclude, delete, dry-run |
-| 10 | `10_sync_pull.sh` | Sync pull, pull with delete |
-| 11 | `11_sync_bidirectional.sh` | Bidirectional sync with conflict resolution |
-| 12 | `12_sync_single_file.sh` | Single file sync (push and pull) |
-| 13 | `13_key_auth_and_errors.sh` | Key-based auth, error handling examples |
+| Action | 必填字段 | 说明 |
+|--------|---------|------|
+| `cmd` | `cmd` 或 `cmd_file` | 执行远程命令 |
+| `upload` | `local_path`, `remote_path` | 上传文件 |
+| `download` | `local_path`, `remote_path` | 下载文件 |
+| `upload_atomic` | `local_path`, `remote_path` | 原子上传 |
+| `mkdir` | `remote_path` | 创建目录 |
+| `remove` | `remote_path` | 删除文件/目录 |
+| `chmod` | `remote_path`, `mode` | 修改权限 |
+| `move` | `remote_path`, `target_path` | 移动/重命名 |
+| `deploy` | `plan` 或 `plan_json` | 多步骤部署 |
+| `sync` | `local_path`, `remote_path`, `direction` | 文件同步 |
 
-## How It Works
+## Sync 冲突策略（bidirectional）
 
-All SSH operations use the `SSH_` prefix with hex-encoded JSON payloads:
-
-```bash
-# Build JSON payload
-json='{"host":"1.2.3.4","port":22,"user":"root","password":"secret","action":"cmd","cmd":"hostname"}'
-
-# Hex-encode it
-hex=$(echo -n "$json" | xxd -p | tr -d '\n')
-
-# Run via aitk
-aitk "SSH_${hex}"
-```
-
-The `common.sh` helper wraps this into a simple `ssh_run` function:
-
-```bash
-source common.sh
-ssh_run '"action":"cmd","cmd":"hostname"'   # auto-prepends connection params
-```
-
-## SSH Actions Reference
-
-| Action | Required Fields | Description |
-|--------|----------------|-------------|
-| `cmd` | `cmd` or `cmd_file` | Execute remote command(s) |
-| `upload` | `local_path`, `remote_path` | Upload file |
-| `download` | `local_path`, `remote_path` | Download file |
-| `upload_atomic` | `local_path`, `remote_path` | Upload via temp + atomic rename |
-| `mkdir` | `remote_path` | Create remote directory |
-| `remove` | `remote_path` | Remove remote file/directory |
-| `chmod` | `remote_path`, `mode` | Change file mode (e.g. "0755") |
-| `move` | `remote_path`, `target_path` | Move/rename remote file |
-| `deploy` | `plan` or `plan_json` | Multi-step deployment |
-| `sync` | `local_path`, `remote_path`, `direction` | File/directory synchronization |
-
-## Deploy Plan Format
-
-```json
-{
-  "steps": [
-    {"name": "stop service", "type": "cmd", "cmd": "pkill app || true", "timeout": "10s"},
-    {"name": "upload binary", "type": "upload_atomic", "local_path": "./app", "remote_path": "/opt/app/app", "temp_path": "/opt/app/app.tmp"},
-    {"name": "make executable", "type": "chmod", "remote_path": "/opt/app/app", "mode": "0755"},
-    {"name": "start service", "type": "cmd", "cmd": "cd /opt/app && ./app", "timeout": "15s"},
-    {"name": "sync configs", "type": "sync", "local_path": "./config", "remote_path": "/opt/app/config", "direction": "push", "recursive": true},
-    {"name": "optional step", "type": "cmd", "cmd": "echo done", "continue_on_error": true}
-  ]
-}
-```
-
-## Sync Conflict Policies
-
-For bidirectional sync (`"direction": "bidirectional"`):
-
-| Policy | Behavior |
-|--------|----------|
-| `fail_on_conflict` | Report conflict, skip file (default) |
-| `newer_wins` | Upload or download whichever is newer |
-| `local_wins` | Always upload (overwrite remote) |
-| `remote_wins` | Always download (overwrite local) |
+| 策略 | 行为 |
+|------|------|
+| `fail_on_conflict` | 报告冲突，跳过文件（默认） |
+| `newer_wins` | 较新的文件覆盖较旧的 |
+| `local_wins` | 本地覆盖远程 |
+| `remote_wins` | 远程覆盖本地 |
