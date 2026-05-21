@@ -1,0 +1,75 @@
+# EVAL - 表达式求值
+#
+# EVAL 与 SCRIPT 使用相同的引擎，语义上更侧重于单表达式求值
+#
+# 三种输入模式:
+#   1. Hex:    aitk EVAL_<hex>
+#   2. 明文:   aitk 'EVAL_{"source":"..."}'
+#   3. Stdin:  echo '{"source":"..."}' | aitk EVAL
+
+# --- 算术表达式 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"1 + 2 * 3"}'
+
+# Hex模式:
+# 编码前: {"source":"1 + 2 * 3"}
+aitk EVAL_7b22736f75726365223a2231202b2032202a2033227d
+
+# Stdin模式:
+echo '{"source":"1 + 2 * 3"}' | aitk EVAL
+
+# --- 字符串操作 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"str_upper(\"hello\")"}'
+
+# Hex模式:
+# 编码前: {"source":"str_upper(\"hello\")"}
+aitk EVAL_7b22736f75726365223a227374725f7570706572285c2268656c6c6f5c2229227d
+
+# --- 数学函数 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"math_sqrt(144) + math_abs(-5)"}'
+
+# Hex模式:
+# 编码前: {"source":"math_sqrt(144) + math_abs(-5)"}
+aitk EVAL_7b22736f75726365223a226d6174685f737172742831343429202b206d6174685f616273282d3529227d
+
+# --- 类型检查 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"type_of(42)"}'
+
+# Hex模式:
+# 编码前: {"source":"type_of(42)"}
+aitk EVAL_7b22736f75726365223a22747970655f6f6628343229227d
+
+# --- 列表操作 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"list_sort([3, 1, 4, 1, 5])"}'
+
+# Hex模式:
+# 编码前: {"source":"list_sort([3, 1, 4, 1, 5])"}
+aitk EVAL_7b22736f75726365223a226c6973745f736f7274285b332c20312c20342c20312c20355d29227d
+
+# --- JSON解析 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"json_decode(\"{\\\"name\\\": \\\"aitk\\\"}\")"}'
+
+# Hex模式:
+# 编码前: {"source":"json_decode(\"{\\\"name\\\": \\\"aitk\\\"}\")"}
+aitk EVAL_7b22736f75726365223a226a736f6e5f6465636f6465285c227b5c5c5c226e616d655c5c5c223a205c5c5c226169746b5c5c5c227d5c2229227d
+
+# --- unsafe模式 ---
+
+# 明文模式 (需要unsafe才能访问io_*/net_*/os_*函数):
+aitk 'EVAL_{"source":"os_hostname()","unsafe":true}'
+
+# --- 超时设置 ---
+
+# 明文模式:
+aitk 'EVAL_{"source":"42","timeout":5}'

@@ -1,0 +1,39 @@
+# File - 高级写入操作
+#
+# 三种输入模式:
+#   1. Hex:    aitk WRITEFILE_<hex>
+#   2. 明文:   aitk 'WRITEFILE_{"path":"...","content":"..."}'
+#   3. Stdin:  echo '{"path":"...","content":"..."}' | aitk WRITEFILE
+
+# --- 追加模式 (append) ---
+
+# 先写入初始内容:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_append.txt","content":"line1\n"}'
+
+# 明文模式追加:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_append.txt","content":"line2\n","mode":"append"}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_append.txt","content":"line3\n","mode":"append"}
+aitk WRITEFILE_7b2270617468223a222f746d702f6169746b5f617070656e642e747874222c22636f6e74656e74223a226c696e65335c6e222c226d6f6465223a22617070656e64227d
+
+# 验证内容:
+aitk 'FILE_{"path":"/tmp/aitk_append.txt"}'
+
+# --- 从URL获取内容写入文件 ---
+
+# 明文模式 (source + source_url):
+aitk 'WRITEFILE_{"path":"/tmp/aitk_from_url.json","source":"url","source_url":"https://httpbin.org/json"}'
+
+# --- 从本地文件读取内容写入另一个文件 ---
+
+# 先准备源文件:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_src.txt","content":"source content"}'
+
+# 明文模式 (source + source_path):
+aitk 'WRITEFILE_{"path":"/tmp/aitk_copy.txt","source":"file","source_path":"/tmp/aitk_src.txt"}'
+
+# --- 写入base64编码的二进制数据 ---
+
+# 明文模式:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_binary.bin","content":"SGVsbG8gV29ybGQ=","encoding":"binary"}'

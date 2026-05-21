@@ -1,0 +1,48 @@
+# Network - 高级下载选项
+#
+# 三种输入模式:
+#   1. Hex:    aitk NETDOWNLOAD_<hex>
+#   2. 明文:   aitk 'NETDOWNLOAD_{"url":"...","path":"..."}'
+#   3. Stdin:  echo '{"url":"...","path":"..."}' | aitk NETDOWNLOAD
+
+# --- 下载时自定义Header ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_auth.json","headers":{"Authorization":"Bearer token123"}}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/json","path":"/tmp/aitk_auth.json","headers":{"Authorization":"Bearer token123"}}
+aitk NETDOWNLOAD_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f6a736f6e222c2270617468223a222f746d702f6169746b5f617574682e6a736f6e222c2268656164657273223a7b22417574686f72697a6174696f6e223a2242656172657220746f6b656e313233227d7d
+
+# --- 跳过TLS验证下载 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://self-signed.badssl.com/","path":"/tmp/badssl.html","insecure":true}'
+
+# --- 自动创建目录 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_dl_dir/data.json","mkdir":true}'
+
+# --- 覆盖已有文件 ---
+
+# 先下载一次:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_overwrite.json"}'
+
+# 覆盖下载:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_overwrite.json","overwrite":true}'
+
+# --- 设置超时 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_timeout.json","timeout":30}'
+
+# --- 验证SHA256校验和 ---
+
+# 明文模式 (替换为实际校验和):
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_verified.json","verify":"abc123..."}'
+
+# --- 断点续传 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_resume.json","resume":true}'

@@ -1,0 +1,81 @@
+# Source Modifiers - _FILE_ 和 _URL_ 源修饰符
+#
+# 任何handler都支持 _FILE_ 和 _URL_ 源修饰符
+# 从文件或URL读取数据后传递给handler
+#
+# 格式: aitk <PREFIX>_<SOURCE>_<HEXDATA>
+#   SOURCE = FILE: 从文件路径(hex编码)读取数据
+#   SOURCE = URL:  从URL(hex编码)获取数据
+#
+# 注意: 对于源修饰符，路径和URL仍然需要hex编码
+# 明文JSON模式不适用于_FILE_/_URL_后的路径
+
+# --- SHELL_FILE_: 从文件读取命令JSON ---
+
+# 先创建命令文件:
+aitk 'WRITEFILE_{"path":"/tmp/cmd.json","content":"{\"cmd\":\"hostname\"}"}'
+
+# Hex模式:
+# 编码前路径: /tmp/cmd.json
+aitk SHELL_FILE_2f746d702f636d642e6a736f6e
+
+# --- SCRIPT_FILE_: 从文件读取脚本源码 ---
+
+# 先创建脚本文件:
+aitk 'WRITEFILE_{"path":"/tmp/script.txt","content":"print(\"hello from file\")"}'
+
+# Hex模式:
+# 编码前路径: /tmp/script.txt
+aitk SCRIPT_FILE_2f746d702f7363726970742e747874
+
+# --- DECODE_FILE_: 从文件读取内容并hex解码 ---
+
+# 先创建包含hex数据的文件:
+aitk 'WRITEFILE_{"path":"/tmp/hexdata.txt","content":"68656c6c6f"}'
+
+# Hex模式:
+# 编码前路径: /tmp/hexdata.txt
+aitk DECODE_FILE_2f746d702f686578646174612e747874
+
+# --- DECODE_URL_: 从URL获取内容并hex解码 ---
+
+# Hex模式:
+# 编码前URL: https://httpbin.org/get
+aitk DECODE_URL_68747470733a2f2f6874747062696e2e6f72672f676574
+
+# --- ENCODE_FILE_: 从文件读取内容并hex编码 ---
+
+# Hex模式:
+# 编码前路径: /etc/hostname
+aitk ENCODE_FILE_2f6574632f686f73746e616d65
+
+# --- HTTPGET_FILE_: 从文件读取请求配置JSON ---
+
+# 先创建配置文件:
+aitk 'WRITEFILE_{"path":"/tmp/httpget.json","content":"{\"url\":\"https://httpbin.org/get\"}"}'
+
+# Hex模式:
+# 编码前路径: /tmp/httpget.json
+aitk HTTPGET_FILE_2f746d702f687474706765742e6a736f6e
+
+# --- FILE_FILE_: 从文件路径读取文件内容 ---
+
+# 明文模式 (路径本身就是要读取的文件):
+# 编码前: {"path":"/etc/hostname"}
+aitk FILE_7b2270617468223a222f6574632f686f73746e616d65227d
+
+# 使用_FILE_源修饰符 (路径是包含文件路径JSON的文件):
+# 编码前路径: /tmp/filepath.txt
+aitk FILE_FILE_2f746d702f66696c65706174682e747874
+
+# --- HASH_FILE_: 计算远程文件哈希 ---
+
+# 先下载文件:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/remote_data.json"}'
+
+# 然后计算哈希:
+aitk 'HASH_{"file":"/tmp/remote_data.json","algo":"sha256"}'
+
+# --- 使用Stdin代替_FILE_ ---
+# Stdin模式通常比_FILE_更直观:
+echo '{"cmd":"hostname"}' | aitk SHELL

@@ -1,0 +1,43 @@
+# Git - 日志过滤和查询
+#
+# 三种输入模式同上
+
+# --- 按作者过滤 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"log","repo":"/mnt1/aiprjs/xxaitk","n":10,"author":"topxeq"}'
+
+# --- 按日期范围过滤 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"log","repo":"/mnt1/aiprjs/xxaitk","n":10,"since":"2025-01-01","until":"2026-01-01"}'
+
+# --- 查看指定文件的提交历史 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"log","repo":"/mnt1/aiprjs/xxaitk","n":5,"file":"main.go"}'
+
+# --- 查看文件差异 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"diff","repo":"/mnt1/aiprjs/xxaitk","file":"main.go"}'
+
+# --- 查看暂存区差异 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"diff","repo":"/mnt1/aiprjs/xxaitk","staged":true}'
+
+# --- 恢复单个文件 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"checkout","repo":"/mnt1/aiprjs/xxaitk","branch":"HEAD","file":"main.go"}'
+
+# --- 强制推送 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"push","repo":"/mnt1/aiprjs/xxaitk","remote":"origin","branch":"main","force":true}'
+
+# --- 克隆指定分支 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"clone","url":"https://github.com/topxeq/xxaitk.git","repo":"/tmp/aitk_branch","branch":"main","depth":1}'

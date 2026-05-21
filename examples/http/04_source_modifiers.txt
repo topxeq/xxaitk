@@ -1,0 +1,51 @@
+# HTTP - Source修饰符和高级选项
+#
+# 三种输入模式:
+#   1. Hex:    aitk HTTPPOST_<hex>
+#   2. 明文:   aitk 'HTTPPOST_{"url":"...","body":"..."}'
+#   3. Stdin:  echo '{"url":"...","body":"..."}' | aitk HTTPPOST
+
+# --- POST自定义Header ---
+
+# 明文模式:
+aitk 'HTTPPOST_{"url":"https://httpbin.org/post","body":"test","headers":{"Authorization":"Bearer mytoken","X-Custom":"value"}}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/post","body":"test","headers":{"Authorization":"Bearer mytoken","X-Custom":"value"}}
+aitk HTTPPOST_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f706f7374222c22626f6479223a2274657374222c2268656164657273223a7b22417574686f72697a6174696f6e223a22426561726572206d79746f6b656e222c22582d437573746f6d223a2276616c7565227d7d
+
+# --- POST从文件读取body ---
+
+# 先创建数据文件:
+aitk 'WRITEFILE_{"path":"/tmp/post_data.json","content":"{\"name\":\"aitk\"}"}'
+
+# 明文模式:
+aitk 'HTTPPOST_{"url":"https://httpbin.org/post","source":"file","source_path":"/tmp/post_data.json","content_type":"application/json"}'
+
+# --- POST从URL读取body ---
+
+# 明文模式:
+aitk 'HTTPPOST_{"url":"https://httpbin.org/post","source":"url","source_url":"https://httpbin.org/json","content_type":"application/json"}'
+
+# --- PUT with headers ---
+
+# 明文模式:
+aitk 'HTTPPUT_{"url":"https://httpbin.org/put","body":"updated","headers":{"Content-Type":"text/plain"}}'
+
+# --- GET with timeout ---
+
+# 明文模式:
+aitk 'HTTPGET_{"url":"https://httpbin.org/get","timeout":10}'
+
+# --- POST insecure (跳过TLS验证) ---
+
+# 明文模式:
+aitk 'HTTPPOST_{"url":"https://self-signed.badssl.com/","body":"test","insecure":true}'
+
+# --- DELETE with body ---
+
+# 明文模式:
+aitk 'HTTPDELETE_{"url":"https://httpbin.org/delete","body":"{}"}'
+
+# Stdin模式:
+echo '{"url":"https://httpbin.org/delete"}' | aitk HTTPDELETE

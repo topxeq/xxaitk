@@ -1,0 +1,56 @@
+# Process - 进程状态和管理
+#
+# 注意: 进程存储在内存中，每次aitk调用是独立进程
+# 因此 status/stop 仅在REPL模式中使用才有意义
+# 在CLI模式下，start会返回进程信息，但无法跨调用查询状态
+#
+# 三种输入模式:
+#   1. Hex:    aitk PROCESS_<hex>
+#   2. 明文:   aitk 'PROCESS_{"action":"...","command":"..."}'
+#   3. Stdin:  echo '{"action":"...","command":"..."}' | aitk PROCESS
+
+# --- 启动进程 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"sleep 60"}'
+
+# Hex模式:
+# 编码前: {"action":"start","command":"sleep 60"}
+aitk PROCESS_7b22616374696f6e223a227374617274222c22636f6d6d616e64223a22736c656570203630227d
+
+# --- 启动带自定义ID的进程 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"sleep 60","id":"my_task"}'
+
+# Stdin模式:
+echo '{"action":"start","command":"sleep 60","id":"my_task"}' | aitk PROCESS
+
+# --- 启动带工作目录和环境变量的进程 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"pwd","work_dir":"/tmp","env":{"MY_VAR":"hello"}}'
+
+# --- 列出所有进程 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"list"}'
+
+# Hex模式:
+# 编码前: {"action":"list"}
+aitk PROCESS_7b22616374696f6e223a226c697374227d
+
+# --- 在REPL中查看/停止进程 ---
+#
+# 进入REPL后，进程在同一会话中保持:
+#
+#   aitk
+#   :PROCESS {"action":"start","command":"sleep 300","id":"bg1"}
+#   :PROCESS {"action":"status","id":"bg1"}
+#   :PROCESS {"action":"list"}
+#   :PROCESS {"action":"stop","id":"bg1"}
+
+# --- 使用自定义Shell启动 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"echo $BASH_VERSION","shell":"/bin/bash"}'

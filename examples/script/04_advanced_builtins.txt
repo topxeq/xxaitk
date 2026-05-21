@@ -1,0 +1,83 @@
+# Script - 高级内置函数
+#
+# 内置函数分类: str_*, math_*, list_*, map_*, json_*, conv_*, type_*
+# 多行脚本使用换行分隔语句 (不支持分号)
+#
+# 三种输入模式:
+#   1. Hex:    aitk SCRIPT_<hex>
+#   2. 明文:   aitk 'SCRIPT_{"source":"..."}'
+#   3. Stdin:  echo '{"source":"..."}' | aitk SCRIPT
+
+# --- str_* 字符串函数 ---
+
+# str_len / str_upper / str_lower
+aitk 'SCRIPT_{"source":"let s = \"Hello World\"\nprint(str_len(s))\nprint(str_upper(s))\nprint(str_lower(s))"}'
+
+# str_trim / str_replace / str_concat
+aitk 'SCRIPT_{"source":"print(str_trim(\"  hi  \"))\nprint(str_replace(\"hello\",\"l\",\"L\"))\nprint(str_concat(\"a\",\"b\"))"}'
+
+# str_split / str_join
+aitk 'SCRIPT_{"source":"let parts = str_split(\"a,b,c\", \",\")\nprint(parts)\nprint(str_join(parts, \"-\"))"}'
+
+# str_sub (子字符串)
+aitk 'SCRIPT_{"source":"print(str_sub(\"hello\", 1, 3))"}'
+
+# --- math_* 数学函数 ---
+
+# math_abs / math_max / math_min / math_floor / math_ceil / math_round
+aitk 'SCRIPT_{"source":"print(math_abs(-5))\nprint(math_max(3, 7))\nprint(math_min(3, 7))\nprint(math_floor(3.7))\nprint(math_ceil(3.2))\nprint(math_round(3.5))"}'
+
+# math_sqrt / math_pow
+aitk 'SCRIPT_{"source":"print(math_sqrt(144))\nprint(math_pow(2, 10))"}'
+
+# --- list_* 列表函数 ---
+
+# list_filter / list_sort / list_map
+aitk 'SCRIPT_{"source":"let nums = [1, 2, 3, 4, 5]\nprint(list_filter(nums, fn(x) { return x > 3 }))\nprint(list_sort([3, 1, 4, 1, 5]))\nprint(list_map(nums, fn(x) { return x * 2 }))"}'
+
+# list_push / list_pop / list_len / list_find
+aitk 'SCRIPT_{"source":"let a = [1, 2]\nprint(list_push(a, 3))\nprint(list_pop(a))\nprint(list_len(a))\nprint(list_find([1, 2, 3, 4], fn(x) { return x > 2 }))"}'
+
+# list_reduce
+aitk 'SCRIPT_{"source":"print(list_reduce([1, 2, 3], fn(acc, x) { return acc + x }, 0))"}'
+
+# --- map_* 字典函数 ---
+
+# map_has / map_keys / map_values / map_len / map_merge
+aitk 'SCRIPT_{"source":"let m = {\"name\": \"aitk\", \"ver\": 1}\nprint(map_has(m, \"name\"))\nprint(map_keys(m))\nprint(map_values(m))\nprint(map_len(m))\nprint(map_merge(m, {\"os\": \"linux\"}))"}'
+
+# map_set / map_del
+aitk 'SCRIPT_{"source":"let m = {}\nmap_set(m, \"key\", 42)\nprint(m)\nmap_del(m, \"key\")\nprint(m)"}'
+
+# --- json_* JSON函数 ---
+
+# json_encode / json_decode
+aitk 'SCRIPT_{"source":"let s = json_encode({\"key\": \"value\"})\nprint(s)\nlet obj = json_decode(s)\nprint(obj)"}'
+
+# json_get / json_has
+aitk 'SCRIPT_{"source":"let s = json_encode({\"name\": \"aitk\", \"ver\": 1})\nprint(json_get(s, \"name\"))\nprint(json_has(s, \"ver\"))"}'
+
+# --- conv_* 转换函数 ---
+
+# conv_to_int / conv_to_float / conv_to_string
+aitk 'SCRIPT_{"source":"print(conv_to_int(\"42\"))\nprint(conv_to_float(\"3.14\"))\nprint(conv_to_string(100))"}'
+
+# conv_hex_encode / conv_hex_decode / conv_b64_encode / conv_b64_decode
+aitk 'SCRIPT_{"source":"print(conv_hex_encode(\"hello\"))\nprint(conv_hex_decode(\"68656c6c6f\"))\nprint(conv_b64_encode(\"hello\"))\nprint(conv_b64_decode(\"aGVsbG8=\"))"}'
+
+# --- type_* 类型函数 ---
+
+# type_of / type_is_int / type_is_string / type_is_bool
+aitk 'SCRIPT_{"source":"print(type_of(42))\nprint(type_of(\"hi\"))\nprint(type_is_int(42))\nprint(type_is_string(\"hi\"))\nprint(type_is_bool(true))"}'
+
+# --- const 常量 ---
+
+aitk 'SCRIPT_{"source":"const PI = 3.14159\nprint(PI)"}'
+
+# --- 负索引 ---
+
+aitk 'SCRIPT_{"source":"let a = [10, 20, 30]\nprint(a[-1])\nprint(a[-2])"}'
+
+# --- 复合赋值 ---
+
+aitk 'SCRIPT_{"source":"let x = 10\nx += 5\nprint(x)\nx -= 3\nprint(x)\nx *= 2\nprint(x)"}'

@@ -1,0 +1,63 @@
+# SQL - 参数化查询和高级操作
+#
+# 三种输入模式:
+#   1. Hex:    aitk SQL_<hex>
+#   2. 明文:   aitk 'SQL_{"driver":"...","dsn":"...","query":"..."}'
+#   3. Stdin:  echo '{"driver":"...","dsn":"...","query":"..."}' | aitk SQL
+
+# --- 创建表和插入数据 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)"}'
+
+# 使用参数化查询插入 (推荐, 防止SQL注入):
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"INSERT INTO users (name, age) VALUES (?, ?)","args":["Alice",30]}'
+
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"INSERT INTO users (name, age) VALUES (?, ?)","args":["Bob",25]}'
+
+# --- 参数化查询 (防止SQL注入) ---
+
+# 明文模式 (使用args字段):
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"INSERT INTO users (name, age) VALUES (?, ?)","args":["Charlie",35]}'
+
+# Hex模式:
+# 编码前: {"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"SELECT * FROM users WHERE age > ?","args":[28]}
+aitk SQL_7b22647269766572223a2273716c697465222c2264736e223a222f746d702f6169746b5f64656d6f2e6462222c227175657279223a2253454c454354202a2046524f4d20757365727320574845524520616765203e203f222c2261726773223a5b32385d7d
+
+# Stdin模式:
+echo '{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"SELECT * FROM users WHERE age > ?","args":[28]}' | aitk SQL
+
+# --- 限制返回行数 ---
+
+# 明文模式 (max_rows):
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"SELECT * FROM users","max_rows":2}'
+
+# --- 查询所有用户 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"SELECT * FROM users"}'
+
+# --- 更新数据 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"UPDATE users SET age = 31 WHERE name = ?","args":["Alice"]}'
+
+# --- 删除数据 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"DELETE FROM users WHERE name = ?","args":["Charlie"]}'
+
+# --- 事务操作 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"BEGIN TRANSACTION"}'
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"INSERT INTO users (name, age) VALUES (?, ?)","args":["Dave",40]}'
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_demo.db","query":"COMMIT"}'
+
+# --- 数据库驱动别名 ---
+#
+# sqlite / sqlite3:  SQLite
+# mysql:             MySQL
+# postgres / pg / postgresql: PostgreSQL
+# mssql / sqlserver: SQL Server
+# oracle / ora:      Oracle

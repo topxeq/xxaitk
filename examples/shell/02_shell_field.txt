@@ -1,0 +1,33 @@
+# Shell - 指定Shell和高级选项
+#
+# 三种输入模式:
+#   1. Hex:    aitk SHELL_<hex>
+#   2. 明文:   aitk 'SHELL_{"cmd":"...","shell":"..."}'
+#   3. Stdin:  echo '{"cmd":"...","shell":"..."}' | aitk SHELL
+
+# --- 使用bash代替默认sh ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"echo $BASH_VERSION","shell":"/bin/bash"}'
+
+# Hex模式:
+# 编码前: {"cmd":"echo $BASH_VERSION","shell":"/bin/bash"}
+aitk SHELL_7b22636d64223a226563686f2024424153485f56455253494f4e222c227368656c6c223a222f62696e2f62617368227d
+
+# Stdin模式:
+echo '{"cmd":"echo $BASH_VERSION","shell":"/bin/bash"}' | aitk SHELL
+
+# --- Shell花括号扩展 (需要bash) ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"echo {a,b,c}","shell":"/bin/bash"}'
+
+# --- 组合: 自定义Shell + 工作目录 + 环境变量 ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"echo $MY_VAR from $(pwd)","shell":"/bin/bash","cwd":"/tmp","env":{"MY_VAR":"hello"}}'
+
+# --- 通过stdin传入复杂命令 ---
+
+# Stdin模式:
+echo '{"cmd":"for i in 1 2 3; do echo item_$i; done","shell":"/bin/bash"}' | aitk SHELL

@@ -1,0 +1,29 @@
+# SSH - 高级部署计划
+# 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
+#
+# deploy支持多种step类型: cmd, upload, upload_atomic, download, mkdir, remove, chmod, move, sync
+
+# --- 包含多种操作类型的部署计划 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"deploy","plan_json":"{\"steps\":[{\"name\":\"check_disk\",\"type\":\"cmd\",\"cmd\":\"df -h /\"},{\"name\":\"create_dir\",\"type\":\"mkdir\",\"remote_path\":\"/opt/app/logs\"},{\"name\":\"upload_app\",\"type\":\"upload\",\"local_path\":\"/tmp/app.jar\",\"remote_path\":\"/opt/app/app.jar\"},{\"name\":\"upload_config\",\"type\":\"upload_atomic\",\"local_path\":\"/tmp/config.yaml\",\"remote_path\":\"/opt/app/config.yaml\",\"temp_path\":\"/opt/app/config.yaml.tmp\"},{\"name\":\"set_permissions\",\"type\":\"chmod\",\"remote_path\":\"/opt/app/app.jar\",\"mode\":\"0755\"},{\"name\":\"restart\",\"type\":\"cmd\",\"cmd\":\"systemctl restart app\"}],\"continue_on_error\":false}"}'
+
+# --- 容忍部分步骤失败的部署 ---
+
+# 明文模式 (continue_on_error: true):
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"deploy","plan_json":"{\"steps\":[{\"name\":\"backup\",\"type\":\"cmd\",\"cmd\":\"cp /opt/app/data.db /opt/app/data.db.bak\"},{\"name\":\"upload\",\"type\":\"upload\",\"local_path\":\"/tmp/app.jar\",\"remote_path\":\"/opt/app/app.jar\"},{\"name\":\"optional_cleanup\",\"type\":\"cmd\",\"cmd\":\"rm -rf /opt/app/old\"}],\"continue_on_error\":true}"}'
+
+# --- 同步类型的部署步骤 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"deploy","plan_json":"{\"steps\":[{\"name\":\"sync_static\",\"type\":\"sync\",\"direction\":\"push\",\"local_path\":\"/tmp/static\",\"remote_path\":\"/var/www/static\",\"recursive\":true,\"delete\":true}],\"continue_on_error\":false}"}'
+
+# --- 连接超时设置 ---
+
+# 明文模式 (timeout字段):
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","timeout":"10s","action":"cmd","cmd":"hostname"}'
+
+# --- 使用known_hosts文件 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","known_hosts":"/root/.ssh/known_hosts","strict_host_key":true,"action":"cmd","cmd":"hostname"}'

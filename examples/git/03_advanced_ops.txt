@@ -1,0 +1,88 @@
+# Git - 高级操作
+#
+# 三种输入模式:
+#   1. Hex:    aitk GIT_<hex>
+#   2. 明文:   aitk 'GIT_{"action":"...","repo":"..."}'
+#   3. Stdin:  echo '{"action":"...","repo":"..."}' | aitk GIT
+
+# --- 初始化仓库 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"init","repo":"/tmp/aitk_git_test"}'
+
+# Hex模式:
+# 编码前: {"action":"init","repo":"/tmp/aitk_git_test"}
+aitk GIT_7b22616374696f6e223a22696e6974222c227265706f223a222f746d702f6169746b5f6769745f74657374227d
+
+# Stdin模式:
+echo '{"action":"init","repo":"/tmp/aitk_git_test2"}' | aitk GIT
+
+# --- 浅克隆 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"clone","url":"https://github.com/topxeq/xxaitk.git","repo":"/tmp/aitk_shallow","depth":1}'
+
+# --- 查看远程仓库 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"remote","repo":"/mnt1/aiprjs/xxaitk"}'
+
+# --- Fetch ---
+
+# 明文模式:
+aitk 'GIT_{"action":"fetch","repo":"/mnt1/aiprjs/xxaitk","remote":"origin"}'
+
+# --- Fetch所有远程 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"fetch","repo":"/mnt1/aiprjs/xxaitk","all":true}'
+
+# --- Stash ---
+
+# 明文模式:
+aitk 'GIT_{"action":"stash","repo":"/tmp/aitk_git_test"}'
+
+# --- Stash pop ---
+
+# 明文模式:
+aitk 'GIT_{"action":"stash","repo":"/tmp/aitk_git_test","branch":"pop"}'
+
+# --- Merge ---
+
+# 明文模式:
+aitk 'GIT_{"action":"merge","repo":"/tmp/aitk_git_test","branch":"feature-1"}'
+
+# --- Rebase ---
+
+# 明文模式:
+aitk 'GIT_{"action":"rebase","repo":"/tmp/aitk_git_test","branch":"main"}'
+
+# --- Rev-parse ---
+
+# 明文模式:
+aitk 'GIT_{"action":"revparse","repo":"/mnt1/aiprjs/xxaitk","args":["HEAD"]}'
+
+# --- Show ---
+
+# 明文模式:
+aitk 'GIT_{"action":"show","repo":"/mnt1/aiprjs/xxaitk","branch":"HEAD"}'
+
+# --- Blame ---
+
+# 明文模式:
+aitk 'GIT_{"action":"blame","repo":"/mnt1/aiprjs/xxaitk","file":"main.go"}'
+
+# --- Reset (hard) ---
+
+# 明文模式:
+aitk 'GIT_{"action":"reset","repo":"/tmp/aitk_git_test","force":true,"branch":"HEAD~1"}'
+
+# --- Clean ---
+
+# 明文模式:
+aitk 'GIT_{"action":"clean","repo":"/tmp/aitk_git_test","force":true}'
+
+# --- Config ---
+
+# 明文模式:
+aitk 'GIT_{"action":"config","repo":"/tmp/aitk_git_test","args":["user.name","aitk"]}'

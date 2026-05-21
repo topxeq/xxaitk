@@ -1,0 +1,52 @@
+# Script - 错误处理与循环控制
+#
+# 多行脚本使用换行分隔语句 (不支持分号)
+#
+# 三种输入模式:
+#   1. Hex:    aitk SCRIPT_<hex>
+#   2. 明文:   aitk 'SCRIPT_{"source":"..."}'
+#   3. Stdin:  echo '{"source":"..."}' | aitk SCRIPT
+
+# --- try() 错误捕获 ---
+
+# try 包装函数调用，返回 [bool, result]
+# 成功时: [true, 返回值]
+aitk 'SCRIPT_{"source":"let r = try(fn() { return 1 + 1 })\nprint(r)"}'
+
+# 失败时: [false, 错误信息]
+aitk 'SCRIPT_{"source":"let r = try(fn() { error(\"something wrong\") })\nprint(r)"}'
+
+# 捕获运行时错误
+aitk 'SCRIPT_{"source":"let r = try(fn() { return [1,2,3][10] })\nprint(r)"}'
+
+# --- error() 主动抛出错误 ---
+
+aitk 'SCRIPT_{"source":"let r = try(fn() {\n  let x = -1\n  if x < 0 { error(\"x must be positive\") }\n  return x\n})\nprint(r)"}'
+
+# --- break 跳出循环 ---
+
+aitk 'SCRIPT_{"source":"for i in [0, 1, 2, 3, 4] {\n  if i == 3 { break }\n  print(i)\n}"}'
+
+# --- continue 跳过当前迭代 ---
+
+aitk 'SCRIPT_{"source":"for i in [0, 1, 2, 3, 4] {\n  if i == 2 { continue }\n  print(i)\n}"}'
+
+# --- while循环中break ---
+
+aitk 'SCRIPT_{"source":"let i = 0\nwhile i < 10 {\n  if i >= 3 { break }\n  print(i)\n  i += 1\n}"}'
+
+# --- 嵌套循环中break ---
+
+aitk 'SCRIPT_{"source":"for i in [0, 1] {\n  for j in [0, 1, 2] {\n    if j == 1 { break }\n    print(i, j)\n  }\n}"}'
+
+# --- 闭包捕获变量 ---
+
+aitk 'SCRIPT_{"source":"fn make_counter() {\n  let count = 0\n  return fn() {\n    count += 1\n    return count\n  }\n}\nlet c = make_counter()\nprint(c())\nprint(c())\nprint(c())"}'
+
+# --- unsafe模式下的错误处理 ---
+
+aitk 'SCRIPT_{"source":"let r = try(fn() { io_read_file(\"/nonexistent/file.txt\") })\nprint(r)","unsafe":true}'
+
+# --- timeout字段 ---
+
+aitk 'SCRIPT_{"source":"print(42)","timeout":5}'
