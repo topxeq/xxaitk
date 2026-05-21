@@ -1,0 +1,34 @@
+# CAPABILITIES - 查询工具能力
+#
+# CAPABILITIES 接受原始字符串（非JSON），如 "all", "prefixes", "builtins"
+# 可用hex或stdin模式
+
+# --- 查询所有能力 ---
+
+# Hex模式:
+# 编码前: "all"
+aitk CAPABILITIES_616c6c
+
+# Stdin模式:
+echo 'all' | aitk CAPABILITIES
+
+# --- 查询前缀列表 ---
+
+# Hex模式:
+# 编码前: "prefixes"
+aitk CAPABILITIES_7072656669786573
+
+# Stdin模式:
+echo 'prefixes' | aitk CAPABILITIES
+
+# --- 查询内置函数 ---
+
+# Hex模式:
+# 编码前: "builtins"
+aitk CAPABILITIES_6275696c74696e73
+
+# --- 查询版本 ---
+
+# Hex模式:
+# 编码前: "version"
+aitk CAPABILITIES_76657273696f6e

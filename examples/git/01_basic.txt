@@ -1,0 +1,53 @@
+# Git - 版本控制
+#
+# 三种输入模式:
+#   1. Hex:    aitk GIT_<hex>
+#   2. 明文:   aitk 'GIT_{"action":"...","repo":"..."}'
+#   3. Stdin:  echo '{"action":"...","repo":"..."}' | aitk GIT
+
+# --- 查看日志 ---
+
+# 明文模式 (在当前目录):
+aitk 'GIT_{"action":"log","n":5}'
+
+# Hex模式:
+# 编码前: {"action":"log","n":5}
+aitk GIT_7b22616374696f6e223a226c6f67222c226e223a357d
+
+# Stdin模式:
+echo '{"action":"log","n":5}' | aitk GIT
+
+# --- 查看状态 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"status"}'
+
+# Hex模式:
+# 编码前: {"action":"status"}
+aitk GIT_7b22616374696f6e223a22737461747573227d
+
+# --- 克隆仓库 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"clone","url":"https://github.com/example/repo.git","repo":"/tmp/myrepo"}'
+
+# --- 创建分支 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"branch","repo":"/tmp/myrepo","branch":"feature-1"}'
+
+# --- 切换分支 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"checkout","repo":"/tmp/myrepo","branch":"feature-1"}'
+
+# --- 添加和提交 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"add","repo":"/tmp/myrepo","files":["."]}'
+aitk 'GIT_{"action":"commit","repo":"/tmp/myrepo","message":"initial commit"}'
+
+# --- 查看差异 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"diff","repo":"/tmp/myrepo","staged":true}'

@@ -1,0 +1,36 @@
+# ListDir - 列出目录
+#
+# 三种输入模式:
+#   1. Hex:    aitk LISTDIR_<hex>
+#   2. 明文:   aitk 'LISTDIR_{"path":"..."}'
+#   3. Stdin:  echo '{"path":"..."}' | aitk LISTDIR
+
+# --- 列出目录 ---
+
+# 明文模式:
+aitk 'LISTDIR_{"path":"/tmp"}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp"}
+aitk LISTDIR_7b2270617468223a222f746d70227d
+
+# Stdin模式:
+echo '{"path":"/tmp"}' | aitk LISTDIR
+
+# --- 递归列出 ---
+
+# 明文模式:
+aitk 'LISTDIR_{"path":"/tmp","recursive":true}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp","recursive":true}
+aitk LISTDIR_7b2270617468223a222f746d70222c22726563757273697665223a747275657d
+
+# --- 过滤文件模式 ---
+
+# 明文模式:
+aitk 'LISTDIR_{"path":"/etc","pattern":"*.conf","show_hidden":true}'
+
+# Hex模式:
+# 编码前: {"path":"/etc","pattern":"*.conf","show_hidden":true}
+aitk LISTDIR_7b2270617468223a222f657463222c227061747465726e223a222a2e636f6e66222c2273686f775f68696464656e223a747275657d

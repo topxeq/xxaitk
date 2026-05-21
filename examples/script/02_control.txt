@@ -1,0 +1,33 @@
+# Script - 控制流
+#
+# 三种输入模式同上
+
+# --- if/else ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let x = 10; if x > 5 { print(\"big\") } else { print(\"small\") }"}'
+
+# --- for循环 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"for i in range(3) { print(i) }"}'
+
+# --- while循环 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let i = 0; while i < 3 { print(i); i += 1 }"}'
+
+# --- 函数定义 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"fn greet(name) { return \"hello \" + name }; print(greet(\"aitk\"))"}'
+
+# --- 列表操作 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let items = [1, 2, 3]; let doubled = list_map(items, fn(x) { return x * 2 }); print(doubled)"}'
+
+# --- map操作 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let m = {\"name\": \"aitk\", \"ver\": 1}; print(map_get(m, \"name\"))"}'

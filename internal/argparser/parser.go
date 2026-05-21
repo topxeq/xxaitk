@@ -36,14 +36,22 @@ func Parse(arg string) (*ParsedArg, error) {
 	if len(parts) >= 3 && knownSources[strings.ToUpper(parts[1])] {
 		source := strings.ToUpper(parts[1])
 		hexData := parts[2]
-		if !hexcodec.IsValidHex(hexData) {
-			return nil, fmt.Errorf("invalid hex data after %s_%s_", operation, source)
+		if hexcodec.IsValidHex(hexData) {
+			return &ParsedArg{
+				Operation: operation,
+				Source:    source,
+				HexData:   hexData,
+			}, nil
 		}
-		return &ParsedArg{
-			Operation: operation,
-			Source:    source,
-			HexData:   hexData,
-		}, nil
+		if isPlaintextJSON(hexData) {
+			trimmed := strings.TrimSpace(hexData)
+			return &ParsedArg{
+				Operation: operation,
+				Source:    source,
+				HexData:   hexcodec.EncodeString(trimmed),
+			}, nil
+		}
+		return nil, fmt.Errorf("invalid hex data after %s_%s_", operation, source)
 	}
 
 	hexData := parts[1]
@@ -58,15 +66,30 @@ func Parse(arg string) (*ParsedArg, error) {
 		}
 	}
 
-	if !hexcodec.IsValidHex(hexData) {
-		return nil, fmt.Errorf("invalid hex data for operation %s", operation)
+	if hexcodec.IsValidHex(hexData) {
+		return &ParsedArg{
+			Operation: operation,
+			Source:    "INLINE",
+			HexData:   hexData,
+		}, nil
 	}
 
-	return &ParsedArg{
-		Operation: operation,
-		Source:    "INLINE",
-		HexData:   hexData,
-	}, nil
+	rawData := arg[len(parts[0])+1:]
+	if isPlaintextJSON(rawData) {
+		trimmed := strings.TrimSpace(rawData)
+		return &ParsedArg{
+			Operation: operation,
+			Source:    "INLINE",
+			HexData:   hexcodec.EncodeString(trimmed),
+		}, nil
+	}
+
+	return nil, fmt.Errorf("invalid hex data for operation %s", operation)
+}
+
+func isPlaintextJSON(s string) bool {
+	s = strings.TrimSpace(s)
+	return strings.HasPrefix(s, "{") || strings.HasPrefix(s, "[")
 }
 
 func (p *ParsedArg) DecodeData() (string, error) {

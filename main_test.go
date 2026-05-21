@@ -2,6 +2,7 @@ package main
 
 import (
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/topxeq/xxaitk/internal/handler"
@@ -24,8 +25,8 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("--version failed: %v", err)
 	}
 	s := string(out)
-	if !containsStr(s, "v0.7.0") {
-		t.Errorf("version output = %q, want v0.7.0", s)
+	if !containsStr(s, "v0.8.0") {
+		t.Errorf("version output = %q, want v0.8.0", s)
 	}
 }
 
@@ -36,8 +37,8 @@ func TestVersionShort(t *testing.T) {
 		t.Fatalf("-v failed: %v", err)
 	}
 	s := string(out)
-	if !containsStr(s, "v0.7.0") {
-		t.Errorf("version output = %q, want v0.7.0", s)
+	if !containsStr(s, "v0.8.0") {
+		t.Errorf("version output = %q, want v0.8.0", s)
 	}
 }
 
@@ -309,6 +310,32 @@ func TestCapabilitiesCommand(t *testing.T) {
 	s := string(out)
 	if !containsStr(s, "prefixes") {
 		t.Errorf("capabilities output missing 'prefixes': %q", s)
+	}
+}
+
+func TestPlaintextJSON(t *testing.T) {
+	bin := buildAitk(t)
+	out, err := exec.Command(bin, `SHELL_{"cmd":"echo plaintext"}`).CombinedOutput()
+	if err != nil {
+		t.Fatalf("plaintext JSON failed: %v", err)
+	}
+	s := string(out)
+	if !containsStr(s, "plaintext") {
+		t.Errorf("plaintext JSON output: %q", s)
+	}
+}
+
+func TestStdinInput(t *testing.T) {
+	bin := buildAitk(t)
+	cmd := exec.Command(bin, "SHELL")
+	cmd.Stdin = strings.NewReader(`{"cmd":"echo stdin"}`)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("stdin input failed: %v", err)
+	}
+	s := string(out)
+	if !containsStr(s, "stdin") {
+		t.Errorf("stdin output: %q", s)
 	}
 }
 

@@ -1,18 +1,24 @@
-# SSH 同步推送 (local → remote)
+# SSH 同步推送 (本地→远程)
 # 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 递归推送目录
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "push", "local_path": "./dist", "remote_path": "/opt/app/dist", "recursive": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270757368222c20226c6f63616c5f70617468223a20222e2f64697374222c202272656d6f74655f70617468223a20222f6f70742f6170702f64697374222c2022726563757273697665223a20747275657d
 
-# 推送并删除远程多余文件
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "push", "local_path": "./dist", "remote_path": "/opt/app/dist", "recursive": true, "delete": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270757368222c20226c6f63616c5f70617468223a20222e2f64697374222c202272656d6f74655f70617468223a20222f6f70742f6170702f64697374222c2022726563757273697665223a20747275652c202264656c657465223a20747275657d
+# --- 推送文件 ---
 
-# dry-run 只看不做
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "push", "local_path": "./dist", "remote_path": "/opt/app/dist", "recursive": true, "dry_run": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270757368222c20226c6f63616c5f70617468223a20222e2f64697374222c202272656d6f74655f70617468223a20222f6f70742f6170702f64697374222c2022726563757273697665223a20747275652c20226472795f72756e223a20747275657d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"push","local_path":"/tmp/src","remote_path":"/tmp/dst","recursive":true}'
 
-# include/exclude 过滤 (只同步js，排除.map)
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "push", "local_path": "./dist", "remote_path": "/opt/app/dist", "recursive": true, "include": ["dist/**"], "exclude": ["**/*.map"]}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270757368222c20226c6f63616c5f70617468223a20222e2f64697374222c202272656d6f74655f70617468223a20222f6f70742f6170702f64697374222c2022726563757273697665223a20747275652c2022696e636c756465223a205b22646973742f2a2a225d2c20226578636c756465223a205b222a2a2f2a2e6d6170225d7d
+# --- 推送并删除远程多余文件 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"push","local_path":"/tmp/src","remote_path":"/tmp/dst","recursive":true,"delete":true}'
+
+# --- 推送前预览 (dry_run) ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"push","local_path":"/tmp/src","remote_path":"/tmp/dst","recursive":true,"dry_run":true}'
+
+# --- 使用冲突解决策略 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"push","local_path":"/tmp/src","remote_path":"/tmp/dst","recursive":true,"conflict":"newer_wins"}'
+
+# 可选冲突策略: fail_on_conflict, newer_wins, local_wins, remote_wins

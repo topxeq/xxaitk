@@ -1,0 +1,23 @@
+# Git - 分支和标签操作
+#
+# 三种输入模式同上
+
+# --- 列出分支 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"branch","repo":"/tmp/myrepo","all":true}'
+
+# --- 创建标签 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"tag","repo":"/tmp/myrepo","tag":"v1.0.0"}'
+
+# --- 推送 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"push","repo":"/tmp/myrepo","remote":"origin","branch":"main"}'
+
+# --- 拉取 ---
+
+# 明文模式:
+aitk 'GIT_{"action":"pull","repo":"/tmp/myrepo","remote":"origin","branch":"main"}'

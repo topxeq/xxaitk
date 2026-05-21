@@ -1,0 +1,43 @@
+# Archive - 压缩/解压
+#
+# 三种输入模式:
+#   1. Hex:    aitk ARCHIVE_<hex>
+#   2. 明文:   aitk 'ARCHIVE_{"action":"...","format":"...","dir":"...","target":"..."}'
+#   3. Stdin:  echo '{"action":"...","format":"...","dir":"...","target":"..."}' | aitk ARCHIVE
+#
+# action 可选: pack, unpack, list
+# pack 需要 files 或 dir 字段指定要压缩的文件/目录
+
+# --- 压缩目录 (pack) ---
+
+# 先创建测试文件:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_arc/test.txt","content":"archive test","mkdir":true}'
+
+# 明文模式 (使用 dir 字段):
+aitk 'ARCHIVE_{"action":"pack","format":"tar.gz","dir":"/tmp/aitk_arc","target":"/tmp/aitk_arc.tar.gz"}'
+
+# Hex模式:
+# 编码前: {"action":"pack","format":"tar.gz","dir":"/tmp/aitk_arc","target":"/tmp/aitk_arc.tar.gz"}
+aitk ARCHIVE_7b22616374696f6e223a227061636b222c22666f726d6174223a227461722e677a222c22646972223a222f746d702f6169746b5f617263222c22746172676574223a222f746d702f6169746b5f6172632e7461722e677a227d
+
+# Stdin模式:
+echo '{"action":"pack","format":"zip","dir":"/tmp/aitk_arc","target":"/tmp/aitk_arc.zip"}' | aitk ARCHIVE
+
+# --- 压缩指定文件 (pack with files) ---
+
+# 明文模式:
+aitk 'ARCHIVE_{"action":"pack","format":"tar.gz","files":["/tmp/aitk_arc/test.txt"],"target":"/tmp/aitk_files.tar.gz"}'
+
+# --- 解压文件 (unpack) ---
+
+# 明文模式:
+aitk 'ARCHIVE_{"action":"unpack","format":"tar.gz","source":"/tmp/aitk_arc.tar.gz","target":"/tmp/aitk_extracted"}'
+
+# Hex模式:
+# 编码前: {"action":"unpack","format":"tar.gz","source":"/tmp/aitk_arc.tar.gz","target":"/tmp/aitk_extracted"}
+aitk ARCHIVE_7b22616374696f6e223a22756e7061636b222c22666f726d6174223a227461722e677a222c22736f75726365223a222f746d702f6169746b5f6172632e7461722e677a222c22746172676574223a222f746d702f6169746b5f657874726163746564227d
+
+# --- 列出压缩包内容 (list) ---
+
+# 明文模式:
+aitk 'ARCHIVE_{"action":"list","format":"tar.gz","source":"/tmp/aitk_arc.tar.gz"}'

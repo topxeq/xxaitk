@@ -1,10 +1,17 @@
-# SSH 同步拉取 (remote → local)
+# SSH 同步拉取 (远程→本地)
 # 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 递归拉取目录
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "pull", "local_path": "./logs", "remote_path": "/opt/app/logs", "recursive": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270756c6c222c20226c6f63616c5f70617468223a20222e2f6c6f6773222c202272656d6f74655f70617468223a20222f6f70742f6170702f6c6f6773222c2022726563757273697665223a20747275657d
 
-# 拉取并删除本地多余文件
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "pull", "local_path": "./logs", "remote_path": "/opt/app/logs", "recursive": true, "delete": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a202270756c6c222c20226c6f63616c5f70617468223a20222e2f6c6f6773222c202272656d6f74655f70617468223a20222f6f70742f6170702f6c6f6773222c2022726563757273697665223a20747275652c202264656c657465223a20747275657d
+# --- 拉取文件 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"pull","local_path":"/tmp/dst","remote_path":"/tmp/src","recursive":true}'
+
+# --- 拉取并删除本地多余文件 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"pull","local_path":"/tmp/dst","remote_path":"/tmp/src","recursive":true,"delete":true}'
+
+# --- 使用过滤 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"sync","direction":"pull","local_path":"/tmp/dst","remote_path":"/tmp/src","recursive":true,"include":["*.log","*.txt"],"exclude":["*.tmp"]}'

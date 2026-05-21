@@ -1,0 +1,46 @@
+# Hash - 哈希计算
+#
+# 三种输入模式:
+#   1. Hex:    aitk HASH_<hex>
+#   2. 明文:   aitk 'HASH_{"data":"...","algo":"..."}'
+#   3. Stdin:  echo '{"data":"...","algo":"..."}' | aitk HASH
+
+# --- SHA256 ---
+
+# 明文模式:
+aitk 'HASH_{"data":"hello","algo":"sha256"}'
+
+# Hex模式:
+# 编码前: {"data":"hello","algo":"sha256"}
+aitk HASH_7b2264617461223a2268656c6c6f222c22616c676f223a22736861323536227d
+
+# Stdin模式:
+echo '{"data":"hello","algo":"sha256"}' | aitk HASH
+
+# --- MD5 ---
+
+# 明文模式:
+aitk 'HASH_{"data":"hello","algo":"md5"}'
+
+# Hex模式:
+# 编码前: {"data":"hello","algo":"md5"}
+aitk HASH_7b2264617461223a2268656c6c6f222c22616c676f223a226d6435227d
+
+# --- SHA1 ---
+
+# 明文模式:
+aitk 'HASH_{"data":"hello","algo":"sha1"}'
+
+# --- SHA512 ---
+
+# 明文模式:
+aitk 'HASH_{"data":"hello","algo":"sha512"}'
+
+# --- 计算文件哈希 ---
+
+# 明文模式:
+aitk 'HASH_{"file":"/etc/hostname","algo":"sha256"}'
+
+# Hex模式:
+# 编码前: {"file":"/etc/hostname","algo":"sha256"}
+aitk HASH_7b2266696c65223a222f6574632f686f73746e616d65222c22616c676f223a22736861323536227d

@@ -1,0 +1,35 @@
+# SQL - 数据库查询
+#
+# 三种输入模式:
+#   1. Hex:    aitk SQL_<hex>
+#   2. 明文:   aitk 'SQL_{"driver":"...","dsn":"...","query":"..."}'
+#   3. Stdin:  echo '{"driver":"...","dsn":"...","query":"..."}' | aitk SQL
+
+# --- SQLite 查询 ---
+
+# 明文模式 (内存数据库):
+aitk 'SQL_{"driver":"sqlite","dsn":":memory:","query":"SELECT 1 AS value, '\''hello'\'' AS name"}'
+
+# Hex模式:
+# 编码前: {"driver":"sqlite","dsn":":memory:","query":"SELECT 1 AS value"}
+aitk SQL_7b22647269766572223a2273716c697465222c2264736e223a223a6d656d6f72793a222c227175657279223a2253454c45435420312041532076616c7565227d
+
+# Stdin模式:
+echo '{"driver":"sqlite","dsn":":memory:","query":"SELECT 1 AS value"}' | aitk SQL
+
+# --- 创建表并插入数据 ---
+
+# 明文模式:
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_test.db","query":"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)"}'
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_test.db","query":"INSERT INTO users (name) VALUES ('\''aitk'\'')"}'
+aitk 'SQL_{"driver":"sqlite","dsn":"/tmp/aitk_test.db","query":"SELECT * FROM users"}'
+
+# --- MySQL 查询 (需要MySQL服务) ---
+
+# 明文模式:
+# aitk 'SQL_{"driver":"mysql","dsn":"user:pass@tcp(127.0.0.1:3306)/dbname","query":"SELECT 1"}'
+
+# --- PostgreSQL 查询 (需要PG服务) ---
+
+# 明文模式:
+# aitk 'SQL_{"driver":"postgres","dsn":"postgres://user:pass@localhost/dbname?sslmode=disable","query":"SELECT 1"}'

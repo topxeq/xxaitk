@@ -1,0 +1,31 @@
+# HTTP PUT/PATCH/DELETE
+#
+# 三种输入模式:
+#   1. Hex:    aitk HTTPPUT_<hex> / HTTPPATCH_<hex> / HTTPDELETE_<hex>
+#   2. 明文:   aitk 'HTTPPUT_{"url":"...","body":"..."}'
+#   3. Stdin:  echo '{"url":"...","body":"..."}' | aitk HTTPPUT
+
+# --- HTTP PUT ---
+
+# 明文模式:
+aitk 'HTTPPUT_{"url":"https://httpbin.org/put","body":"{\"name\":\"updated\"}","content_type":"application/json"}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/put","body":"{\"name\": \"updated\"}","content_type":"application/json"}
+aitk HTTPPUT_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f707574222c22626f6479223a227b5c226e616d655c223a205c22757064617465645c227d222c22636f6e74656e745f74797065223a226170706c69636174696f6e2f6a736f6e227d
+
+# Stdin模式:
+echo '{"url":"https://httpbin.org/put","body":"data"}' | aitk HTTPPUT
+
+# --- HTTP PATCH ---
+
+# 明文模式:
+aitk 'HTTPPATCH_{"url":"https://httpbin.org/patch","body":"{\"field\":\"value\"}","content_type":"application/json"}'
+
+# --- HTTP DELETE ---
+
+# 明文模式:
+aitk 'HTTPDELETE_{"url":"https://httpbin.org/delete"}'
+
+# Stdin模式:
+echo '{"url":"https://httpbin.org/delete"}' | aitk HTTPDELETE

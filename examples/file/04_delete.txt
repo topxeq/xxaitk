@@ -1,0 +1,25 @@
+# Delete - 删除文件/目录
+#
+# 三种输入模式:
+#   1. Hex:    aitk DELETE_<hex>
+#   2. 明文:   aitk 'DELETE_{"path":"..."}'
+#   3. Stdin:  echo '{"path":"..."}' | aitk DELETE
+
+# --- 删除文件 ---
+
+# 明文模式 (先创建再删除):
+aitk 'WRITEFILE_{"path":"/tmp/aitk_del_test.txt","content":"to be deleted"}'
+aitk 'DELETE_{"path":"/tmp/aitk_del_test.txt"}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_del_test.txt"}
+aitk DELETE_7b2270617468223a222f746d702f6169746b5f64656c5f746573742e747874227d
+
+# --- 递归删除目录 ---
+
+# 明文模式:
+aitk 'DELETE_{"path":"/tmp/aitk_dir","recursive":true,"force":true}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_dir","recursive":true,"force":true}
+aitk DELETE_7b2270617468223a222f746d702f6169746b5f646972222c22726563757273697665223a747275652c22666f726365223a747275657d

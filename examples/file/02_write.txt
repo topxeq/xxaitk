@@ -1,0 +1,39 @@
+# WriteFile - 写入文件
+#
+# 三种输入模式:
+#   1. Hex:    aitk WRITEFILE_<hex>
+#   2. 明文:   aitk 'WRITEFILE_{"path":"...","content":"..."}'
+#   3. Stdin:  echo '{"path":"...","content":"..."}' | aitk WRITEFILE
+
+# --- 写入文本文件 ---
+
+# 明文模式:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_test.txt","content":"hello aitk"}'
+
+# 如果文件已存在，使用 overwrite 模式:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_test.txt","content":"hello aitk updated","mode":"overwrite"}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_test.txt","content":"hello aitk"}
+aitk WRITEFILE_7b2270617468223a222f746d702f6169746b5f746573742e747874222c22636f6e74656e74223a2268656c6c6f206169746b227d
+
+# Stdin模式:
+echo '{"path":"/tmp/aitk_test_stdin.txt","content":"from stdin"}' | aitk WRITEFILE
+
+# --- 创建目录并写入 ---
+
+# 明文模式:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_dir/nested/file.txt","content":"nested","mkdir":true}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_dir/nested/file.txt","content":"nested","mkdir":true}
+aitk WRITEFILE_7b2270617468223a222f746d702f6169746b5f6469722f6e65737465642f66696c652e747874222c22636f6e74656e74223a226e6573746564222c226d6b646972223a747275657d
+
+# --- 指定文件权限 ---
+
+# 明文模式:
+aitk 'WRITEFILE_{"path":"/tmp/aitk_perm.txt","content":"secret","mode":"0600"}'
+
+# Hex模式:
+# 编码前: {"path":"/tmp/aitk_perm.txt","content":"secret","mode":"0600"}
+aitk WRITEFILE_7b2270617468223a222f746d702f6169746b5f7065726d2e747874222c22636f6e74656e74223a22736563726574222c226d6f6465223a2230363030227d

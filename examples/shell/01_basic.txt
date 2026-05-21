@@ -1,0 +1,63 @@
+# Shell - 执行本地命令
+#
+# 三种输入模式:
+#   1. Hex:    aitk SHELL_<hex>
+#   2. 明文:   aitk 'SHELL_{"cmd":"..."}'
+#   3. Stdin:  echo '{"cmd":"..."}' | aitk SHELL
+
+# --- 执行简单命令 ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"hostname"}'
+
+# Hex模式:
+# 编码前: {"cmd":"hostname"}
+aitk SHELL_7b22636d64223a22686f73746e616d65227d
+
+# Stdin模式:
+echo '{"cmd":"hostname"}' | aitk SHELL
+
+# --- 多条命令 ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"date && uname -a"}'
+
+# Hex模式:
+# 编码前: {"cmd":"date && uname -a"}
+aitk SHELL_7b22636d64223a226461746520262620756e616d65202d61227d
+
+# --- 指定工作目录 ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"pwd","cwd":"/tmp"}'
+
+# Hex模式:
+# 编码前: {"cmd":"pwd","cwd":"/tmp"}
+aitk SHELL_7b22636d64223a22707764222c22637764223a222f746d70227d
+
+# --- 环境变量 ---
+
+# 明文模式 (注意: $MY_VAR 需要转义或用单引号):
+aitk 'SHELL_{"cmd":"echo $MY_VAR","env":{"MY_VAR":"hello_world"}}'
+
+# Hex模式:
+# 编码前: {"cmd":"echo $MY_VAR","env":{"MY_VAR":"hello_world"}}
+aitk SHELL_7b22636d64223a226563686f20244d595f564152222c22656e76223a7b224d595f564152223a2268656c6c6f5f776f726c64227d7d
+
+# --- 超时 (3秒) ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"sleep 1","timeout":3}'
+
+# Hex模式:
+# 编码前: {"cmd":"sleep 1","timeout":3}
+aitk SHELL_7b22636d64223a22736c6565702031222c2274696d656f7574223a337d
+
+# --- 输入stdin ---
+
+# 明文模式:
+aitk 'SHELL_{"cmd":"cat","stdin":"hello from stdin"}'
+
+# Hex模式:
+# 编码前: {"cmd":"cat","stdin":"hello from stdin"}
+aitk SHELL_7b22636d64223a22636174222c22737464696e223a2268656c6c6f2066726f6d20737464696e227d

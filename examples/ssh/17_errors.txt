@@ -1,22 +1,21 @@
-# SSH 错误示例
-# 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 缺少 host → SSH_MISSING_PARAMS
-# 编码前: {"user": "root", "password": "x", "action": "cmd", "cmd": "echo hi"}
-aitk SSH_7b2275736572223a2022726f6f74222c202270617373776f7264223a202278222c2022616374696f6e223a2022636d64222c2022636d64223a20226563686f206869227d
+# SSH 常见错误场景
 
-# 缺少认证 → SSH_MISSING_AUTH
-# 编码前: {"host": "1.2.3.4", "user": "root", "action": "cmd", "cmd": "echo hi"}
-aitk SSH_7b22686f7374223a2022312e322e332e34222c202275736572223a2022726f6f74222c2022616374696f6e223a2022636d64222c2022636d64223a20226563686f206869227d
+# --- 连接超时 ---
 
-# 未知 action → SSH_UNKNOWN_ACTION
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "invalid"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022696e76616c6964227d
+# 明文模式:
+aitk 'SSH_{"host":"192.0.2.1","port":22,"user":"root","password":"test","timeout":"2s","action":"cmd","cmd":"hostname"}'
 
-# 双向同步+delete → SSH_SYNC_ERROR
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "sync", "direction": "bidirectional", "local_path": "/tmp/a", "remote_path": "/tmp/b", "recursive": true, "delete": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202273796e63222c2022646972656374696f6e223a20226269646972656374696f6e616c222c20226c6f63616c5f70617468223a20222f746d702f61222c202272656d6f74655f70617468223a20222f746d702f62222c2022726563757273697665223a20747275652c202264656c657465223a20747275657d
+# --- 认证失败 ---
 
-# 命令非零退出码（结果中 exit_code=2，不是错误）
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "cmd", "cmd": "ls /nonexistent"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022636d64222c2022636d64223a20226c73202f6e6f6e6578697374656e74227d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"wrong_password","action":"cmd","cmd":"hostname"}'
+
+# --- 命令执行失败 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"nonexistent_command"}'
+
+# --- 缺少必填字段 ---
+
+# 明文模式:
+aitk 'SSH_{"action":"cmd","cmd":"hostname"}'

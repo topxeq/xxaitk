@@ -1,0 +1,48 @@
+# INFO - 系统信息查询
+#
+# 三种输入模式:
+#   1. Hex:    aitk INFO_<hex>
+#   2. 明文:   aitk 'INFO_{"query":"..."}'
+#   3. Stdin:  echo '{"query":"..."}' | aitk INFO
+#
+# query 可选: os, cpu, mem, env, all
+
+# --- 查询操作系统信息 ---
+
+# 明文模式:
+aitk 'INFO_{"query":"os"}'
+
+# Hex模式:
+# 编码前: {"query":"os"}
+aitk INFO_7b227175657279223a226f73227d
+
+# Stdin模式:
+echo '{"query":"os"}' | aitk INFO
+
+# --- 查询CPU信息 ---
+
+# 明文模式:
+aitk 'INFO_{"query":"cpu"}'
+
+# Hex模式:
+# 编码前: {"query":"cpu"}
+aitk INFO_7b227175657279223a22637075227d
+
+# --- 查询内存信息 ---
+
+# 明文模式:
+aitk 'INFO_{"query":"mem"}'
+
+# --- 查询环境变量 ---
+
+# 明文模式:
+aitk 'INFO_{"query":"env"}'
+
+# --- 查询所有信息 ---
+
+# 明文模式:
+aitk 'INFO_{"query":"all"}'
+
+# Hex模式:
+# 编码前: {"query":"all"}
+aitk INFO_7b227175657279223a22616c6c227d

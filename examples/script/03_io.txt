@@ -1,0 +1,28 @@
+# Script - IO操作
+#
+# 三种输入模式同上
+
+# --- 读写文件 (unsafe模式) ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"io_write_file(\"/tmp/aitk_script.txt\", \"script output\"); print(io_read_file(\"/tmp/aitk_script.txt\"))","unsafe":true}'
+
+# --- HTTP请求 (unsafe模式) ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let resp = net_http_get(\"https://httpbin.org/get\"); print(len(resp))","unsafe":true}'
+
+# --- 环境变量 (unsafe模式) ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"print(os_getenv(\"HOME\"))","unsafe":true}'
+
+# --- 时间操作 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"print(time_now()); print(time_format(time_now(), \"2006-01-02\"))"}'
+
+# --- JSON操作 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let s = json_encode({\"key\": \"value\"}); print(s); let obj = json_decode(s); print(obj)"}'

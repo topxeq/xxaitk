@@ -1,0 +1,33 @@
+# Script - 执行脚本
+#
+# 三种输入模式:
+#   1. Hex:    aitk SCRIPT_<hex>
+#   2. 明文:   aitk 'SCRIPT_{"source":"..."}'
+#   3. Stdin:  echo '{"source":"..."}' | aitk SCRIPT
+
+# --- 执行简单脚本 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"print(\"hello from script\")"}'
+
+# Hex模式:
+# 编码前: {"source":"print(\"hello from script\")"}
+aitk SCRIPT_7b22736f75726365223a227072696e74285c2268656c6c6f2066726f6d207363726970745c2229227d
+
+# Stdin模式:
+echo '{"source":"print(\"hello from script\")"}' | aitk SCRIPT
+
+# --- 传递参数 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"print(args[0])","args":["hello"]}' 
+
+# --- 使用内置函数 ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"let s = str_upper(\"hello\"); print(s)"}'
+
+# --- 不安全模式 (可访问io_*函数) ---
+
+# 明文模式:
+aitk 'SCRIPT_{"source":"print(io_read_file(\"/etc/hostname\"))","unsafe":true}'

@@ -1,0 +1,55 @@
+# Encoding - 编码/解码
+#
+# DECODE/ENCODE/B64ENC/B64DEC/URLENC/URLDEC 接受原始数据（非JSON对象）
+#
+# 输入模式说明:
+#   - Hex模式: 直接传递hex数据给handler（推荐）
+#   - Stdin模式: stdin数据会被hex编码后再传入handler，注意双重编码
+#   - 明文模式: 不适用（这些handler不接收JSON对象）
+#
+# 对于编码类handler，推荐使用Hex模式
+
+# --- DECODE (hex解码: 将hex数据解码为明文) ---
+
+# Hex模式: 解码 "hello" 的hex编码
+aitk DECODE_68656c6c6f
+
+# 使用 _FILE_ 源修饰符从文件读取hex数据并解码:
+# 编码前: /etc/hostname
+aitk DECODE_FILE_2f6574632f686f73746e616d65
+
+# 使用 _URL_ 源修饰符:
+# 编码前: https://httpbin.org/get
+aitk DECODE_URL_68747470733a2f2f6874747062696e2e6f72672f676574
+
+# --- ENCODE (hex编码: 将明文编码为hex) ---
+
+# Hex模式: 编码 "hello" → 先将hex "68656c6c6f" 解码得 "hello", 再hex编码
+aitk ENCODE_68656c6c6f
+
+# --- Base64 编码 ---
+
+# Hex模式: 编码 "hello"
+aitk B64ENC_68656c6c6f
+
+# --- Base64 解码 ---
+
+# Hex模式: 解码 "aGVsbG8=" (hello的base64)
+# "aGVsbG8=" 的hex: 614756736247383d
+aitk B64DEC_614756736247383d
+
+# 输出为hex格式: 68656c6c6f (= "hello")
+
+# --- URL 编码 ---
+
+# Hex模式: 编码 "hello world"
+# "hello world" 的hex: 68656c6c6f20776f726c64
+aitk URLENC_68656c6c6f20776f726c64
+
+# --- URL 解码 ---
+
+# Hex模式: 解码 "hello%20world"
+# "hello%20world" 的hex: 68656c6c6f253230776f726c64
+aitk URLDEC_68656c6c6f253230776f726c64
+
+# 输出为hex格式: 68656c6c6f20776f726c64 (= "hello world")

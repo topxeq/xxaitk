@@ -1,0 +1,37 @@
+# HTTP GET
+#
+# 三种输入模式:
+#   1. Hex:    aitk HTTPGET_<hex>
+#   2. 明文:   aitk 'HTTPGET_{"url":"..."}'
+#   3. Stdin:  echo '{"url":"..."}' | aitk HTTPGET
+
+# --- 基本GET请求 ---
+
+# 明文模式:
+aitk 'HTTPGET_{"url":"https://httpbin.org/get"}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/get"}
+aitk HTTPGET_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f676574227d
+
+# Stdin模式:
+echo '{"url":"https://httpbin.org/get"}' | aitk HTTPGET
+
+# --- 自定义Header ---
+
+# 明文模式:
+aitk 'HTTPGET_{"url":"https://httpbin.org/get","headers":{"X-Custom":"value"}}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/get","headers":{"X-Custom":"value"}}
+aitk HTTPGET_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f676574222c2268656164657273223a7b22582d437573746f6d223a2276616c7565227d7d
+
+# --- 跳过TLS验证 ---
+
+# 明文模式:
+aitk 'HTTPGET_{"url":"https://self-signed.badssl.com/","insecure":true}'
+
+# --- 不跟随重定向 ---
+
+# 明文模式:
+aitk 'HTTPGET_{"url":"https://httpbin.org/redirect/1","follow_redirects":false}'

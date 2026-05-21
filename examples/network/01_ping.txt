@@ -1,0 +1,27 @@
+# Ping - 网络连通性测试
+#
+# 三种输入模式:
+#   1. Hex:    aitk PING_<hex>
+#   2. 明文:   aitk 'PING_{"host":"..."}'
+#   3. Stdin:  echo '{"host":"..."}' | aitk PING
+
+# --- Ping主机 ---
+
+# 明文模式:
+aitk 'PING_{"host":"127.0.0.1"}'
+
+# Hex模式:
+# 编码前: {"host":"127.0.0.1"}
+aitk PING_7b22686f7374223a223132372e302e302e31227d
+
+# Stdin模式:
+echo '{"host":"127.0.0.1"}' | aitk PING
+
+# --- 指定超时和端口 ---
+
+# 明文模式:
+aitk 'PING_{"host":"127.0.0.1","timeout":5,"port":22}'
+
+# Hex模式:
+# 编码前: {"host":"127.0.0.1","timeout":5,"port":22}
+aitk PING_7b22686f7374223a223132372e302e302e31222c2274696d656f7574223a352c22706f7274223a32327d

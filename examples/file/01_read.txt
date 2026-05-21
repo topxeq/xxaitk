@@ -1,0 +1,45 @@
+# File - 读取文件
+#
+# 三种输入模式:
+#   1. Hex:    aitk FILE_<hex>
+#   2. 明文:   aitk 'FILE_{"path":"..."}'
+#   3. Stdin:  echo '{"path":"..."}' | aitk FILE
+
+# --- 读取文本文件 ---
+
+# 明文模式:
+aitk 'FILE_{"path":"/etc/hostname"}'
+
+# Hex模式:
+# 编码前: {"path":"/etc/hostname"}
+aitk FILE_7b2270617468223a222f6574632f686f73746e616d65227d
+
+# Stdin模式:
+echo '{"path":"/etc/hostname"}' | aitk FILE
+
+# --- 读取文件指定偏移和限制 ---
+
+# 明文模式:
+aitk 'FILE_{"path":"/etc/hostname","offset":0,"limit":10}'
+
+# Hex模式:
+# 编码前: {"path":"/etc/hostname","offset":0,"limit":10}
+aitk FILE_7b2270617468223a222f6574632f686f73746e616d65222c226f6666736574223a302c226c696d6974223a31307d
+
+# --- 读取二进制文件 (返回 base64) ---
+
+# 明文模式:
+aitk 'FILE_{"path":"/usr/bin/ls","encoding":"binary"}'
+
+# Hex模式:
+# 编码前: {"path":"/usr/bin/ls","encoding":"binary"}
+aitk FILE_7b2270617468223a222f7573722f62696e2f6c73222c22656e636f64696e67223a2262696e617279227d
+
+# --- READFILE (与FILE相同) ---
+
+# 明文模式:
+aitk 'READFILE_{"path":"/etc/hostname"}'
+
+# Hex模式:
+# 编码前: {"path":"/etc/hostname"}
+aitk READFILE_7b2270617468223a222f6574632f686f73746e616d65227d

@@ -146,3 +146,129 @@ func TestParseHTTPWithSource(t *testing.T) {
 		t.Errorf("Source = %q, want FILE", p.Source)
 	}
 }
+
+func TestParsePlaintextJSONObject(t *testing.T) {
+	p, err := Parse(`SHELL_{"command":"ls"}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Operation != "SHELL" {
+		t.Errorf("Operation = %q, want SHELL", p.Operation)
+	}
+	if p.Source != "INLINE" {
+		t.Errorf("Source = %q, want INLINE", p.Source)
+	}
+	decoded, err := p.DecodeData()
+	if err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if decoded != `{"command":"ls"}` {
+		t.Errorf("decoded = %q, want {\"command\":\"ls\"}", decoded)
+	}
+}
+
+func TestParsePlaintextJSONArray(t *testing.T) {
+	p, err := Parse(`SHELL_["ls","-la"]`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Operation != "SHELL" {
+		t.Errorf("Operation = %q, want SHELL", p.Operation)
+	}
+	decoded, err := p.DecodeData()
+	if err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if decoded != `["ls","-la"]` {
+		t.Errorf("decoded = %q, want [\"ls\",\"-la\"]", decoded)
+	}
+}
+
+func TestParsePlaintextWithUnderscores(t *testing.T) {
+	p, err := Parse(`SHELL_{"command":"echo hello_world"}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Operation != "SHELL" {
+		t.Errorf("Operation = %q, want SHELL", p.Operation)
+	}
+	decoded, err := p.DecodeData()
+	if err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if decoded != `{"command":"echo hello_world"}` {
+		t.Errorf("decoded = %q, want {\"command\":\"echo hello_world\"}", decoded)
+	}
+}
+
+func TestParsePlaintextWithSpaces(t *testing.T) {
+	p, err := Parse(`SHELL_ { "command" : "ls" } `)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	decoded, err := p.DecodeData()
+	if err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if decoded != `{ "command" : "ls" }` {
+		t.Errorf("decoded = %q", decoded)
+	}
+}
+
+func TestParsePlaintextNonJSONStillErrors(t *testing.T) {
+	_, err := Parse("SHELL_zzzz")
+	if err == nil {
+		t.Error("expected error for non-hex non-JSON plaintext")
+	}
+}
+
+func TestParsePlaintextWithSourceModifier(t *testing.T) {
+	p, err := Parse(`HTTPGET_FILE_{"path":"/tmp/urls.json"}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Operation != "HTTPGET" {
+		t.Errorf("Operation = %q, want HTTPGET", p.Operation)
+	}
+	if p.Source != "FILE" {
+		t.Errorf("Source = %q, want FILE", p.Source)
+	}
+	decoded, err := p.DecodeData()
+	if err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if decoded != `{"path":"/tmp/urls.json"}` {
+		t.Errorf("decoded = %q", decoded)
+	}
+}
+
+func TestParsePlaintextURLSource(t *testing.T) {
+	p, err := Parse(`SHELL_URL_{"url":"https://example.com/cmd.json"}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Source != "URL" {
+		t.Errorf("Source = %q, want URL", p.Source)
+	}
+}
+
+func TestIsPlaintextJSON(t *testing.T) {
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{`{"key":"val"}`, true},
+		{`  {"key":"val"}`, true},
+		{`["a","b"]`, true},
+		{`  ["a"]`, true},
+		{"plain text", false},
+		{"zzzz", false},
+		{"", false},
+	}
+	for _, tt := range tests {
+		got := isPlaintextJSON(tt.input)
+		if got != tt.want {
+			t.Errorf("isPlaintextJSON(%q) = %v, want %v", tt.input, got, tt.want)
+		}
+	}
+}

@@ -1,0 +1,28 @@
+# NetDownload - 下载文件
+#
+# 三种输入模式:
+#   1. Hex:    aitk NETDOWNLOAD_<hex>
+#   2. 明文:   aitk 'NETDOWNLOAD_{"url":"...","path":"..."}'
+#   3. Stdin:  echo '{"url":"...","path":"..."}' | aitk NETDOWNLOAD
+
+# --- 下载文件 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_download.json"}'
+
+# Hex模式:
+# 编码前: {"url":"https://httpbin.org/json","path":"/tmp/aitk_download.json"}
+aitk NETDOWNLOAD_7b2275726c223a2268747470733a2f2f6874747062696e2e6f72672f6a736f6e222c2270617468223a222f746d702f6169746b5f646f776e6c6f61642e6a736f6e227d
+
+# Stdin模式:
+echo '{"url":"https://httpbin.org/json","path":"/tmp/aitk_dl_stdin.json"}' | aitk NETDOWNLOAD
+
+# --- 自动创建目录 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://httpbin.org/json","path":"/tmp/aitk_dl_dir/data.json","mkdir":true}'
+
+# --- 跳过TLS验证 ---
+
+# 明文模式:
+aitk 'NETDOWNLOAD_{"url":"https://self-signed.badssl.com/","path":"/tmp/badssl.html","insecure":true}'

@@ -1,0 +1,27 @@
+# Port - 端口扫描/检测
+#
+# 三种输入模式:
+#   1. Hex:    aitk PORT_<hex>
+#   2. 明文:   aitk 'PORT_{"host":"...","port":...}'
+#   3. Stdin:  echo '{"host":"...","port":...}' | aitk PORT
+
+# --- 检查单个端口 ---
+
+# 明文模式:
+aitk 'PORT_{"host":"127.0.0.1","port":22}'
+
+# Hex模式:
+# 编码前: {"host":"127.0.0.1","port":22}
+aitk PORT_7b22686f7374223a223132372e302e302e31222c22706f7274223a32327d
+
+# Stdin模式:
+echo '{"host":"127.0.0.1","port":22}' | aitk PORT
+
+# --- 扫描端口范围 ---
+
+# 明文模式:
+aitk 'PORT_{"host":"127.0.0.1","from":20,"to":80}'
+
+# Hex模式:
+# 编码前: {"host":"127.0.0.1","from":20,"to":80}
+aitk PORT_7b22686f7374223a223132372e302e302e31222c2266726f6d223a32302c22746f223a38307d

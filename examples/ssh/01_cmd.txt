@@ -1,14 +1,29 @@
 # SSH 执行远程命令
 # 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
 #
-# 执行 hostname
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "cmd", "cmd": "hostname"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022636d64222c2022636d64223a2022686f73746e616d65227d
+# 三种输入模式:
+#   1. Hex:    aitk SSH_<hex>
+#   2. 明文:   aitk 'SSH_{"host":"...","action":"cmd","cmd":"..."}'
+#   3. Stdin:  echo '{"host":"...","action":"cmd","cmd":"..."}' | aitk SSH
 
-# 执行 uname -a
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "cmd", "cmd": "uname -a"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022636d64222c2022636d64223a2022756e616d65202d61227d
+# --- 执行 hostname ---
 
-# 查看磁盘使用
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "cmd", "cmd": "df -h /"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022636d64222c2022636d64223a20226466202d68202f227d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"hostname"}'
+
+# Hex模式:
+# 编码前: {"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"hostname"}
+aitk SSH_7b22686f7374223a22594f55525f484f5354222c22706f7274223a32322c2275736572223a22726f6f74222c2270617373776f7264223a22594f55525f50415353574f5244222c22616374696f6e223a22636d64222c22636d64223a22686f73746e616d65227d
+
+# Stdin模式:
+echo '{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"hostname"}' | aitk SSH
+
+# --- 执行 uname -a ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"uname -a"}'
+
+# --- 查看磁盘使用 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"cmd","cmd":"df -h /"}'

@@ -1,0 +1,28 @@
+# Diff - 文件/内容对比
+#
+# 三种输入模式:
+#   1. Hex:    aitk DIFF_<hex>
+#   2. 明文:   aitk 'DIFF_{"content_a":"...","content_b":"..."}'
+#   3. Stdin:  echo '{"content_a":"...","content_b":"..."}' | aitk DIFF
+
+# --- 对比两段文本 ---
+
+# 明文模式:
+aitk 'DIFF_{"content_a":"hello world","content_b":"hello aitk"}'
+
+# Hex模式:
+# 编码前: {"content_a":"hello world","content_b":"hello aitk"}
+aitk DIFF_7b22636f6e74656e745f61223a2268656c6c6f20776f726c64222c22636f6e74656e745f62223a2268656c6c6f206169746b227d
+
+# Stdin模式:
+echo '{"content_a":"hello world","content_b":"hello aitk"}' | aitk DIFF
+
+# --- 对比两个文件 ---
+
+# 明文模式:
+aitk 'DIFF_{"file_a":"/tmp/file_a.txt","file_b":"/tmp/file_b.txt"}'
+
+# --- 对比指定上下文行数 ---
+
+# 明文模式:
+aitk 'DIFF_{"content_a":"line1\nline2\nline3","content_b":"line1\nchanged\nline3","context":3}'

@@ -1,14 +1,14 @@
-# SSH 多步骤部署
+# SSH 部署 (多步骤计划)
 # 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 从文件加载部署计划
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "deploy", "plan": "/path/to/deploy.json"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a20226465706c6f79222c2022706c616e223a20222f706174682f746f2f6465706c6f792e6a736f6e227d
 
-# 内联部署计划 (plan_json)
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "deploy", "plan_json": "{\"steps\": [{\"name\": \"stop old\", \"type\": \"cmd\", \"cmd\": \"pkill app || true\", \"timeout\": \"10s\"}, {\"name\": \"upload\", \"type\": \"upload_atomic\", \"local_path\": \"./app\", \"remote_path\": \"/opt/app/app\", \"temp_path\": \"/opt/app/app.tmp\"}, {\"name\": \"chmod\", \"type\": \"chmod\", \"remote_path\": \"/opt/app/app\", \"mode\": \"0755\"}, {\"name\": \"start\", \"type\": \"cmd\", \"cmd\": \"cd /opt/app && setsid -f ./app > logs/app.log 2>&1\", \"timeout\": \"15s\"}]}"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a20226465706c6f79222c2022706c616e5f6a736f6e223a20227b5c2273746570735c223a205b7b5c226e616d655c223a205c2273746f70206f6c645c222c205c22747970655c223a205c22636d645c222c205c22636d645c223a205c22706b696c6c20617070207c7c20747275655c222c205c2274696d656f75745c223a205c223130735c227d2c207b5c226e616d655c223a205c2275706c6f61645c222c205c22747970655c223a205c2275706c6f61645f61746f6d69635c222c205c226c6f63616c5f706174685c223a205c222e2f6170705c222c205c2272656d6f74655f706174685c223a205c222f6f70742f6170702f6170705c222c205c2274656d705f706174685c223a205c222f6f70742f6170702f6170702e746d705c227d2c207b5c226e616d655c223a205c2263686d6f645c222c205c22747970655c223a205c2263686d6f645c222c205c2272656d6f74655f706174685c223a205c222f6f70742f6170702f6170705c222c205c226d6f64655c223a205c22303735355c227d2c207b5c226e616d655c223a205c2273746172745c222c205c22747970655c223a205c22636d645c222c205c22636d645c223a205c226364202f6f70742f61707020262620736574736964202d66202e2f617070203e206c6f67732f6170702e6c6f6720323e26315c222c205c2274696d656f75745c223a205c223135735c227d5d7d227d
+# --- 从JSON字符串执行部署 ---
 
-# continue_on_error: 步骤失败后继续执行
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "deploy", "plan_json": "{\"steps\": [{\"name\": \"check\", \"type\": \"cmd\", \"cmd\": \"uname -s\"}, {\"name\": \"may fail but continue\", \"type\": \"cmd\", \"cmd\": \"ls /nonexistent\", \"continue_on_error\": true}, {\"name\": \"still runs\", \"type\": \"cmd\", \"cmd\": \"echo ok\"}]}"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a20226465706c6f79222c2022706c616e5f6a736f6e223a20227b5c2273746570735c223a205b7b5c226e616d655c223a205c22636865636b5c222c205c22747970655c223a205c22636d645c222c205c22636d645c223a205c22756e616d65202d735c227d2c207b5c226e616d655c223a205c226d6179206661696c2062757420636f6e74696e75655c222c205c22747970655c223a205c22636d645c222c205c22636d645c223a205c226c73202f6e6f6e6578697374656e745c222c205c22636f6e74696e75655f6f6e5f6572726f725c223a20747275657d2c207b5c226e616d655c223a205c227374696c6c2072756e735c222c205c22747970655c223a205c22636d645c222c205c22636d645c223a205c226563686f206f6b5c227d5d7d227d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"deploy","plan_json":"{\"steps\":[{\"name\":\"backup\",\"type\":\"cmd\",\"cmd\":\"cp /opt/app/data.db /opt/app/data.db.bak\"},{\"name\":\"upload\",\"type\":\"upload\",\"local_path\":\"/tmp/app.jar\",\"remote_path\":\"/opt/app/app.jar\"},{\"name\":\"restart\",\"type\":\"cmd\",\"cmd\":\"systemctl restart app\"}],\"continue_on_error\":false}"}'
+
+# --- 从文件读取部署计划 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"deploy","plan":"/tmp/deploy_plan.json"}'
+
+# 参见 deploy_plan_example.json 获取计划文件格式

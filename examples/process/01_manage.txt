@@ -1,0 +1,37 @@
+# Process - 进程管理
+#
+# 三种输入模式:
+#   1. Hex:    aitk PROCESS_<hex>
+#   2. 明文:   aitk 'PROCESS_{"action":"...","command":"..."}'
+#   3. Stdin:  echo '{"action":"...","command":"..."}' | aitk PROCESS
+
+# --- 启动后台进程 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"sleep 60"}'
+
+# Hex模式:
+# 编码前: {"action":"start","command":"sleep 60"}
+aitk PROCESS_7b22616374696f6e223a227374617274222c22636f6d6d616e64223a22736c656570203630227d
+
+# Stdin模式:
+echo '{"action":"start","command":"sleep 60"}' | aitk PROCESS
+
+# --- 查看进程列表 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"list"}'
+
+# Hex模式:
+# 编码前: {"action":"list"}
+aitk PROCESS_7b22616374696f6e223a226c697374227d
+
+# --- 停止进程 (替换为实际ID) ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"stop","id":"PROCESS_ID"}'
+
+# --- 带工作目录和环境变量启动 ---
+
+# 明文模式:
+aitk 'PROCESS_{"action":"start","command":"pwd","work_dir":"/tmp","env":{"MY_VAR":"test"}}'

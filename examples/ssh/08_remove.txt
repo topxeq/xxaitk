@@ -1,14 +1,12 @@
 # SSH 删除远程文件/目录
 # 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 删除文件
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "remove", "remote_path": "/opt/app/old.log"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202272656d6f7665222c202272656d6f74655f70617468223a20222f6f70742f6170702f6f6c642e6c6f67227d
 
-# 递归删除目录
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "remove", "remote_path": "/opt/app/old"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202272656d6f7665222c202272656d6f74655f70617468223a20222f6f70742f6170702f6f6c64227d
+# --- 删除文件 ---
 
-# 删除不存在的路径不会报错
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "remove", "remote_path": "/opt/app/nonexistent"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a202272656d6f7665222c202272656d6f74655f70617468223a20222f6f70742f6170702f6e6f6e6578697374656e74227d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"remove","remote_path":"/tmp/unwanted.txt"}'
+
+# --- 递归删除目录 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","action":"remove","remote_path":"/tmp/olddir","recursive":true}'

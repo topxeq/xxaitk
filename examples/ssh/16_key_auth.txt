@@ -1,14 +1,20 @@
 # SSH 密钥认证
-# 替换 YOUR_HOST / YOUR_PASSWORD 为实际值后运行
-#
-# 使用私钥认证
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "key": "~/.ssh/id_rsa", "action": "cmd", "cmd": "hostname"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c20226b6579223a20227e2f2e7373682f69645f727361222c2022616374696f6e223a2022636d64222c2022636d64223a2022686f73746e616d65227d
+# 替换 YOUR_HOST 为实际值后运行
 
-# 私钥带密码
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "key": "~/.ssh/id_rsa", "key_passphrase": "YOUR_PASSPHRASE", "action": "cmd", "cmd": "hostname"}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c20226b6579223a20227e2f2e7373682f69645f727361222c20226b65795f70617373706872617365223a2022594f55525f50415353504852415345222c2022616374696f6e223a2022636d64222c2022636d64223a2022686f73746e616d65227d
+# --- 使用密钥文件认证 ---
 
-# strict host key 验证
-# 编码前: {"host": "YOUR_HOST", "port": 22, "user": "root", "password": "YOUR_PASSWORD", "action": "cmd", "cmd": "hostname", "known_hosts": "~/.ssh/known_hosts", "strict_host_key": true}
-aitk SSH_7b22686f7374223a2022594f55525f484f5354222c2022706f7274223a2032322c202275736572223a2022726f6f74222c202270617373776f7264223a2022594f55525f50415353574f5244222c2022616374696f6e223a2022636d64222c2022636d64223a2022686f73746e616d65222c20226b6e6f776e5f686f737473223a20227e2f2e7373682f6b6e6f776e5f686f737473222c20227374726963745f686f73745f6b6579223a20747275657d
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","key":"/root/.ssh/id_rsa","action":"cmd","cmd":"hostname"}'
+
+# Stdin模式:
+echo '{"host":"YOUR_HOST","port":22,"user":"root","key":"/root/.ssh/id_rsa","action":"cmd","cmd":"hostname"}' | aitk SSH
+
+# --- 使用带密码的密钥 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","key":"/root/.ssh/id_rsa","key_passphrase":"my_passphrase","action":"cmd","cmd":"hostname"}'
+
+# --- 跳过主机密钥验证 ---
+
+# 明文模式:
+aitk 'SSH_{"host":"YOUR_HOST","port":22,"user":"root","password":"YOUR_PASSWORD","strict_host_key":false,"action":"cmd","cmd":"hostname"}'

@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/topxeq/xxaitk/internal/dispatcher"
 	"github.com/topxeq/xxaitk/internal/handler"
+	"github.com/topxeq/xxaitk/internal/hexcodec"
 	"github.com/topxeq/xxaitk/internal/repl"
 	"github.com/topxeq/xxaitk/internal/scriptlib"
 	"github.com/topxeq/xxaitk/internal/updater"
@@ -70,8 +72,30 @@ func main() {
 	registerHandlers()
 	handler.Version = version
 
+	rawArg := remaining[0]
+
+	if !strings.Contains(rawArg, "_") {
+		stdinData := readStdin()
+		if stdinData != "" {
+			hexData := hexcodec.EncodeString(stdinData)
+			rawArg = rawArg + "_" + hexData
+		}
+	}
+
 	d := dispatcher.New(debug)
-	d.Dispatch(remaining[0])
+	d.Dispatch(rawArg)
+}
+
+func readStdin() string {
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		return ""
+	}
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
 }
 
 func handleLibCommand(args []string) {
@@ -188,15 +212,22 @@ func registerHandlers() {
 func printHelp() {
 	fmt.Printf("aitk v%s - AI Agent Toolkit\n\n", version)
 	fmt.Println("Usage:")
-	fmt.Println("  aitk                              Enter REPL mode")
-	fmt.Println("  aitk <PREFIX>[_SOURCE]_<HEXDATA>  Execute command")
-	fmt.Println("  aitk lib <command>               Manage script libraries")
-	fmt.Println("  aitk update                      Update aitk to latest version")
+	fmt.Println("  aitk                                    Enter REPL mode")
+	fmt.Println("  aitk <PREFIX>[_SOURCE]_<HEXDATA>        Execute command (hex-encoded)")
+	fmt.Println("  aitk <PREFIX>_<JSON>                    Execute command (plaintext JSON)")
+	fmt.Println("  echo '<JSON>' | aitk <PREFIX>           Execute command (stdin)")
+	fmt.Println("  aitk lib <command>                      Manage script libraries")
+	fmt.Println("  aitk update                             Update aitk to latest version")
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  --version, -v   Print version")
 	fmt.Println("  --help, -h      Print this help")
 	fmt.Println("  --debug         Enable debug output")
+	fmt.Println()
+	fmt.Println("Input modes:")
+	fmt.Println("  Hex:      aitk SHELL_7b22636f6d6d616e64223a226c73227d")
+	fmt.Println("  Plaintext: aitk 'SHELL_{\"command\":\"ls\"}'")
+	fmt.Println("  Stdin:    echo '{\"command\":\"ls\"}' | aitk SHELL")
 	fmt.Println()
 	fmt.Println("Prefixes:")
 	fmt.Println("  Execution:    SHELL SCRIPT EVAL")
