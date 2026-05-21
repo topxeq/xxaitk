@@ -64,6 +64,7 @@ var knownPrefixes = map[string]bool{
 	"GIT":       true,
 	"PORT":      true,
 	"NETDOWNLOAD": true,
+	"SSH":         true,
 	"CAPABILITIES": true,
 }
 

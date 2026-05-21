@@ -70,7 +70,8 @@ func (h *CapabilitiesHandler) buildCapabilities() map[string]interface{} {
 			"negative_indexing": true,
 			"const_enforcement": true,
 			"auto_update":      true,
-			"local_capture":     true,
+			"local_capture":    true,
+			"ssh":              true,
 		},
 	}
 }
@@ -84,7 +85,7 @@ func KnownPrefixesList() []string {
 		"FILE", "READFILE", "WRITEFILE", "LISTDIR", "DELETE",
 		"INFO", "DECODE", "ENCODE", "B64ENC", "B64DEC", "URLENC", "URLDEC",
 		"PING", "HASH", "PROCESS", "DIFF", "ARCHIVE", "SQL", "GIT",
-		"PORT", "NETDOWNLOAD", "CAPABILITIES",
+		"PORT", "NETDOWNLOAD", "SSH", "CAPABILITIES",
 	}
 }
 

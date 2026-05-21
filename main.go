@@ -13,7 +13,7 @@ import (
 	"github.com/topxeq/xxaitk/internal/updater"
 )
 
-var version = "0.7.0"
+var version = "0.8.0"
 
 func main() {
 	updater.CleanupOldBinary()
@@ -181,6 +181,7 @@ func registerHandlers() {
 	handler.Register("GIT", &handler.GitHandler{})
 	handler.Register("PORT", &handler.PortHandler{})
 	handler.Register("NETDOWNLOAD", &handler.NetDownloadHandler{})
+	handler.Register("SSH", &handler.SSHHandler{})
 	handler.Register("CAPABILITIES", &handler.CapabilitiesHandler{})
 }
 
@@ -209,6 +210,7 @@ func printHelp() {
 	fmt.Println("  Diff:         DIFF")
 	fmt.Println("  Archive:      ARCHIVE")
 	fmt.Println("  Database:     SQL")
+	fmt.Println("  SSH:          SSH")
 	fmt.Println("  System:       INFO CAPABILITIES")
 	fmt.Println()
 	fmt.Println("Source modifiers:")
