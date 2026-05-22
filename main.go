@@ -15,7 +15,7 @@ import (
 	"github.com/topxeq/xxaitk/internal/updater"
 )
 
-var version = "0.8.0"
+var version = "0.9.0"
 
 func main() {
 	updater.CleanupOldBinary()
